@@ -171,7 +171,7 @@ donut2d
 
 The tutorial `donut2d.m` demonstrates the complete simulation workflow:
 
-1. **Setup Phase**: Loads the mesh, identifies boundaries using physical group tags, and initializes material parameters (bulk modulus `K=10000`, shear modulus `co=5000`).
+1. **Setup Phase**: Loads the mesh, identifies boundaries using physical group tags, and initializes material parameters.
 
 2. **Boundary Selection**: Creates masks for specific portions of the outer boundary where forces will be applied, using angle and position criteria.
 
