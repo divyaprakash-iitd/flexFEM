@@ -2,7 +2,7 @@
 
 ![Animation](donut_animation.webp)
 
-This repository provides a MATLAB-based library for 2D Finite Element Method (FEM) simulations, focusing on the deformation of annular (donut-shaped) structures under applied forces. The implementation follows the formulations described in:
+This repository provides a MATLAB-based library for 2D Finite Element Method (FEM) simulations. For demonstartion purposes a deformation of annular (donut-shaped) structures under applied forces is simulated. However the provided functions can be used to simulate any type of 2D geometry. The implementation follows the formulations described in:
 
 - Bhattacharya, A., & Balazs, A. C. (2013). Stiffness-modulated motion of soft microscopic particles over active adhesive cilia. Soft Matter, 9(15), 3945-3955. https://doi.org/10.1039/c3sm27445f
 - Duki, S. F., Kolmakov, G. V., Yashin, V. V., Kowalewski, T., Matyjaszewski, K., & Balazs, A. C. (2011). Modeling the nanoscratching of self-healing materials. The Journal of Chemical Physics, 134(8), 084901. https://doi.org/10.1063/1.3554193
