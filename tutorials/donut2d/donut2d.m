@@ -1,5 +1,9 @@
 clear; clc; close all;
 
+%% Add path
+libpath = '../../'; % Replace with the path where you have downloaded the source code
+addpath(libpath);
+
 %% Description: Solves a demo problem using FEM
 
 %% Define the elastic constants
@@ -11,7 +15,7 @@ nu  = K/(2*(co+K));
 %% Geometry and FEM Mesh
 
 % Import gmsh mesh
-annular_mesh;
+donut2d_mesh;
 
 % Get the points
 points = msh.POS;

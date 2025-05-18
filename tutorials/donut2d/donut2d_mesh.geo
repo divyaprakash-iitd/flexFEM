@@ -70,8 +70,3 @@ Mesh.MeshSizeMax = meshSize;
 // Generate the 2D mesh
 Mesh 2;
 
-// Export mesh in MATLAB format
-// Mesh.MshFileVersion = 2.2;  // Use a version compatible with most tools
-// Mesh.Format = 1;            // ASCII format
-// Mesh.SaveAll = 0;          
-// Save "annular_mesh.m";      // Save as MATLAB file
