@@ -8,9 +8,6 @@ This repository provides a MATLAB-based library for 2D Finite Element Method (FE
 - Duki, S. F., Kolmakov, G. V., Yashin, V. V., Kowalewski, T., Matyjaszewski, K., & Balazs, A. C. (2011). Modeling the nanoscratching of self-healing materials. The Journal of Chemical Physics, 134(8), 084901. https://doi.org/10.1063/1.3554193
 
 
-- A. Bhattacharya and A. C. Balazs, [Soft Matter, 2013, 9, 3945–3955](https://pubs.rsc.org/en/content/articlelanding/2013/sm/c3sm00028a)
-- More detailed formulations in [Journal of Chemical Physics, 134, 084901 (2011)](https://pubs.aip.org/aip/jcp/article/134/8/084901/960252)
-
 ## Prerequisites
 
 - **MATLAB**: Version R2020b or later (required for `pagemtimes` function).
