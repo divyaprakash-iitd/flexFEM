@@ -1,6 +1,6 @@
 # FEM Simulation Library for Large Deformations
 
-![Animation](donut_animation.webp)
+![Animation](tutorials/donut2d/donut_animation.webp)
 
 This repository provides a MATLAB-based library for Finite Element Method (FEM) simulations. For demonstartion purposes a deformation of annular (donut-shaped) structures under applied forces is simulated. However the provided functions can be used to simulate any type of 2D geometry. The implementation follows the formulations described in:
 
