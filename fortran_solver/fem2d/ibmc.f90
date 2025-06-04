@@ -83,6 +83,8 @@ program ibmc
     dt = 0.001
     do iter = 1, niter
         ! print *, fxboundary
+        ! Call applyboundaryforces inside of calculateforces and make the fx/fyboundary optional
+        ! Make sure that fden is initialised as zero at the start of every iteration
         call applyboundaryforces(fxboundary,fyboundary,n)
         ! call applyboundaryforces(Fright,FYC,n)
     
