@@ -28,6 +28,16 @@ for i, s in zip(range(nPhysicalGroups),[80,40,10]):
     p = gmsh.model.mesh.getNodesForPhysicalGroup(*physicalGroups[i])
     x = np.array(p[1]).reshape(-1,3)
     plot_nodes(x,ax,ms=s)
+plt.show()
+
+# plot the mesh
+import matplotlib.tri as tri
+elementTags, nodeTags = gmsh.model.mesh.getElementsByType(elementType=2,tag=-1)
+nodes = x.copy()
+connectivity = np.reshape(nodeTags, (-1, 3)) -1 # -1 since python is zero indexed and tag numbering starts from 1 in gmsh
+triangulation = tri.Triangulation(nodes[:, 0], nodes[:, 1], connectivity)
+plt.triplot(triangulation, 'b-', lw=1)  # 'b-' = blue lines
+plt.show()
 
 # # Get nodes according to physical groups
 # p1 = gmsh.model.mesh.getNodesForPhysicalGroup(*physicalGroups[0])
@@ -42,5 +52,4 @@ for i, s in zip(range(nPhysicalGroups),[80,40,10]):
 # plt.plot(x1[:,0],x1[:,1],'ko')
 # plt.plot(x2[:,0],x2[:,1],'bo')
 # plt.scatter(x3[:,0],x3[:,1],marker="*",s=2)
-
-plt.show()
+#plt.show()

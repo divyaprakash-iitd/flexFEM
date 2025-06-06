@@ -19,7 +19,7 @@ This directory contains Fortran modules and programs for handling mesh data, inc
 To compile the test program, use the following command:
 
 ```bash
-gfortran -I/usr/local/include -o test_mesh_module gmsh.f90 matrix_writer.f90 mesh_module.f90 test_mesh_module.f90 -L/usr/local/lib -lgmsh
+gfortran -o test_mesh_module /usr/local/include/gmsh.f90 matrix_writer.f90 mesh_module.f90 test_mesh_module.f90 -L/usr/local/lib -lgmsh
 ```
 
 ## Usage

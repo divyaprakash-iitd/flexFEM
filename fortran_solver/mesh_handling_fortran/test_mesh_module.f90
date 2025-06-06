@@ -6,6 +6,7 @@ program test_physical_group
   
   type(PhysicalGroupData), allocatable :: physicalGroups(:)
   integer(c_size_t), allocatable :: nodeTagsAll(:)
+  integer(c_size_t), allocatable :: connectivity(:)
   real(c_double), allocatable :: coordAll(:)
   real(c_double), allocatable :: parametricCoordAll(:)
   integer :: ierr, i
@@ -34,29 +35,25 @@ program test_physical_group
      print *, 'Error in get_physical_group_nodes: ', ierr
   end if
  
-  ! Call the subroutine to get all nodes
-  call get_all_nodes("donut2d_mesh.msh", nodeTagsAll, coordAll, parametricCoordAll, ierr)
+  ! Call the subroutine to get all nodes and connectivity
+  call get_nodes_connectivity("donut2d_mesh.msh", connectivity, nodeTagsAll, coordAll, ierr)
+  ! call get_all_nodes("donut2d_mesh.msh", nodeTagsAll, coordAll, parametricCoordAll, ierr)
   print *, "Shape of coordAll: ", shape(coordAll)  
   if (ierr == 0) then
      ! Print all nodes data for verification
      print *, 'All Nodes: ', size(nodeTagsAll), ' nodes'
      print *, 'Node Tags (first 5): ', nodeTagsAll(1:min(5, size(nodeTagsAll)))
      print *, 'Coordinates (first 5): ', coordAll(1:min(5, size(coordAll)))
-     if (size(parametricCoordAll) > 0) then
-        print *, 'Parametric Coordinates (first 5): ', &
-                 parametricCoordAll(1:min(5, size(parametricCoordAll)))
-     else
-        print *, 'No Parametric Coordinates Available'
-     end if
-     
-  call write_matrix(reshape(coordAll,[3,size(coordAll)/3]), 'coordAll')
+     print *, 'Connectivity (first 5): ', connectivity(1:min(5, size(connectivity)))
+  call write_to_file('coordAll.txt',reshape(coordAll,[3,size(coordAll)/3]))
+  call write_to_file('connectivity.txt', reshape(connectivity,[3,size(connectivity)/3]))
 
      ! Clean up all nodes data
      if (allocated(nodeTagsAll)) deallocate(nodeTagsAll)
      if (allocated(coordAll)) deallocate(coordAll)
      if (allocated(parametricCoordAll)) deallocate(parametricCoordAll)
   else
-     print *, 'Error in get_all_nodes: ', ierr
+     print *, 'Error in get_mesh_data: ', ierr
   end if
 
 
