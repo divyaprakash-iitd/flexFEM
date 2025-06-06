@@ -1,22 +1,26 @@
-# Mesh Handling Module
+# README for Mesh Processing Codes
 
 [Reference](https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/api/gmsh.f90?ref_type=heads)
 
-This directory contains Fortran modules and programs for handling mesh data, including reading mesh files, extracting physical group information, and writing matrix/vector data to files.
+## Overview
 
-## Directory Structure
+This repository contains Fortran codes for processing 2D mesh data using the GMSH API. The codes can:
 
-- **`test_mesh_module.f90`**: A test program that demonstrates the usage of `mesh_module` and `matrix_writer` modules.
-- **`mesh_module.f90`**: Contains subroutines for reading mesh files and extracting node and physical group data using GMSH.
-- **`matrix_writer.f90`**: Provides subroutines for writing vectors and matrices to text files.
-- **`donut2d_mesh.msh`**: A sample GMSH mesh file used for testing.
-- **`coordAll.txt`**: Output file containing node coordinates written by the test program.
-- **`README.md`**: Instructions for compiling and understanding the directory contents.
-- **`mesh_module.mod`**, **`matrix_writer.mod`**, **`gmsh.mod`**: Compiled module files generated during the build process.
+1. Read GMSH mesh files (.msh)
+2. Extract physical group information (boundaries and surfaces)
+3. Retrieve node coordinates and connectivity data
+4. Write mesh data to text files for further processing
 
-## Compile Instructions
+## Files
 
-To compile the test program, use the following command:
+- `donut2d_mesh.geo`: GMSH script to generate a 2D annular mesh (donut shape)
+- `matrix_writer.f90`: Module for writing matrices and vectors to files
+- `mesh_module.f90`: Main module for mesh processing using GMSH API
+- `test_mesh_module.f90`: Test program demonstrating the functionality
+
+## Compilation Instructions
+
+To compile the code, run:
 
 ```bash
 gfortran -o test_mesh_module /usr/local/include/gmsh.f90 matrix_writer.f90 mesh_module.f90 test_mesh_module.f90 -L/usr/local/lib -lgmsh
@@ -24,16 +28,33 @@ gfortran -o test_mesh_module /usr/local/include/gmsh.f90 matrix_writer.f90 mesh_
 
 ## Usage
 
-1. Compile the program using the instructions above.
-2. Run the `test_mesh_module` executable to test mesh handling functionality.
-3. Check the output files (e.g., `coordAll.txt`) for results.
+1. First generate a mesh file using GMSH:
+   ```bash
+   gmsh donut2d_mesh.geo -2 -o donut2d_mesh.msh
+   ```
+
+2. Run the compiled program:
+   ```bash
+   ./test_mesh_module
+   ```
+
+The program will:
+- Extract physical group information (inner and outer boundaries, surface)
+- Retrieve all node coordinates and connectivity data
+- Write coordinate and connectivity data to `coordAll.txt` and `connectivity.txt`
+
+## Output Files
+
+- `coordAll.txt`: Contains all node coordinates (x,y,z)
+- `connectivity.txt`: Contains element connectivity information
 
 ## Dependencies
 
-- **GMSH**: The program uses GMSH's API for mesh handling. Ensure GMSH is installed and its libraries are accessible.
+- GMSH (including Fortran API)
+- gfortran compiler
 
 ## Notes
 
-- The `test_mesh_module.f90` program demonstrates reading mesh data from `donut2d_mesh.msh` and writing node coordinates to `coordAll.txt`.
-- Modify the test program or mesh file as needed for your use case.
-```
+- The code is specifically tested with a 2D annular mesh but can be adapted for other 2D meshes
+- Ensure GMSH is properly installed with Fortran API support
+- The paths in the compilation command may need adjustment based on your GMSH installation
