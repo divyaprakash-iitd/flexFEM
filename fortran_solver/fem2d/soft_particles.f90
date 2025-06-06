@@ -73,7 +73,7 @@ module soft_particles
     pboundary = .FALSE.
     ! PP(:,1) = PP(:,1)! + Lx/2.0d0 
     ! PP(:,2) = PP(:,2)! + Ly/2.0d0  
-    particles(1) = festruct(MP,PP,PB,pboundary,paelem,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
+    particles(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
 
     ! Open the file for writing
     OPEN(UNIT=10, FILE="MP.txt", STATUS='replace', ACTION='write')

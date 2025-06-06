@@ -26,6 +26,7 @@ module fem2d
             procedure :: update_position
             procedure :: set_force
             procedure :: set_velocity
+            procedure :: shapecoefficients
 
     end type festruct
 
@@ -35,12 +36,9 @@ module fem2d
 
     contains
 
-    type(festruct) function festruct_constructor(M, XE, bc, boundary, aelem, fden, U, co, kval, dl) result(self)
+    type(festruct) function festruct_constructor(M, XE, fden, U, co, kval, dl) result(self)
         integer(int32), intent(in):: M(:,:) ! Indices providing connectivity information
         real(real64), intent(in) :: XE(:,:) ! Coordinates of points
-        real(real64), intent(in) :: bc(:,:,:) ! Shape function coefficients
-        logical, intent(in) :: boundary ! Top, bottom, left and right boundaries
-        real(real64), intent(in) :: aelem(:)
         real(real64), intent(in) :: fden(:,:)
         real(real64), intent(in) :: U(:,:)
         real(real64), intent(in) :: co
@@ -49,14 +47,17 @@ module fem2d
 
         self%M = M
         self%XE = XE
-        self%bc = bc
-        self%boundary = boundary
-        self%aelem = aelem
         self%fden = fden
         self%U = U
         self%co = co
         self%kval = kval
         self%dl = dl
+
+        ! print *, self%bc(1,1,:)
+        ! print *, "--------------------------------------"
+        call shapecoefficients(self)
+        ! print *, "--------------------------------------"
+        ! print *, "Shape coefficients: ", self%bc(1,1,:)   
     end function festruct_constructor
 
     elemental subroutine set_force(self,fden)
@@ -64,9 +65,6 @@ module fem2d
         real(real64), intent(in) :: fden
         
         integer(int32) :: ipoints
-        ! Fix the bottom nodes (Make force zero)
-        forall (ipoints = 1:size(self%XE,1), self%boundary(ipoints,2).eqv..True.) &
-            self%fden(ipoints,:) = fden
     end subroutine set_force
     
     elemental subroutine set_velocity(self,UN)
@@ -120,10 +118,9 @@ module fem2d
             end do
         end do 
         
-        ! Fix the bottom nodes (Make force zero)
-        forall (ipoints = 1:size(self%XE,1), self%boundary(ipoints,2).eqv..True.) &
-            self%fden(ipoints,:) = 0.0d0
-
+        ! ! Fix the bottom nodes (Make force zero)
+        ! forall (ipoints = 1:size(self%XE,1), self%boundary(ipoints,2).eqv..True.) &
+        !     self%fden(ipoints,:) = 0.0d0
     end subroutine calculate_forces
     
     elemental subroutine update_position(self, dt)
@@ -139,7 +136,6 @@ module fem2d
             self%XE(ipoint,2) = self%XE(ipoint,2) + dt * self%U(ipoint,2)
         end do
             
-
     end subroutine update_position
 
     ! Helper functions
@@ -225,18 +221,133 @@ module fem2d
     end function jacobian
     ! end subroutine jacobian
 
+    ! pure function determinant(M) result(D)
+    !     implicit none
+    !     integer, parameter :: dp = kind(0.d0)
+    !     real(dp), intent(in) :: M(:,:)
+    !     real(dp) :: D
+
+    !     D = M(1,1) * M(2,2) - M(1,2) * M(2,1)
+
+    !     ! D = M(1,1) * (M(2,2) * M(3,3) - M(3,2) * M(2,3)) - &
+    !     !     M(1,2) * (M(2,1) * M(3,3) - M(3,1) * M(2,3)) + &
+    !     !     M(1,3) * (M(2,1) * M(3,2) - M(2,2) * M(3,1))
+
+    ! end function determinant
+
+    subroutine shapecoefficients(self)
+        implicit none
+        class(festruct), intent(inout) :: self
+
+        integer(int32) :: ielem, nelems, npoints, inode
+        real(real64), allocatable :: bcoff(:,:,:), acoff(:,:), velem(:)
+        real(real64) :: A(3,3), C(3,3) ! Co-factor matrix
+        
+        npoints = size(self%XE,1)
+        nelems = size(self%M,1)
+
+        allocate(bcoff(nelems,2,3), acoff(nelems,3), velem(nelems))
+        bcoff   = 0.0d0
+        acoff   = 0.0d0
+        A       = 0.0d0
+        C       = 0.0d0
+        velem   = 0.0d0
+
+        do ielem = 1,nelems
+            A(3,:) = 1.0d0
+            do inode = 1,3
+                A(1,inode) = self%XE(self%M(ielem,inode),1)
+                A(2,inode) = self%XE(self%M(ielem,inode),2)
+            end do 
+        
+            ! Find the volume of the tetrahedrals
+            velem(ielem) = abs(determinant(A))
+
+            ! Go over each node of the element and
+            ! calculate the coefficients for each node (a and b)
+            C = cofactor(A)
+            bcoff(ielem,:,:) = C(1:2,:)
+            acoff(ielem,:) = C(3,:)
+
+            ! Divide by the volume of the element
+            bcoff(ielem,:,:) = bcoff(ielem,:,:)/velem(ielem)
+            acoff(ielem,:) = acoff(ielem,:)/velem(ielem)
+
+        end do
+        self%bc = bcoff
+        self%aelem = velem
+
+    end subroutine shapecoefficients
+
+    pure function cofactor(A) result(CM)
+        implicit none
+        integer, parameter :: dp = kind(0.d0)
+        real(dp), intent(in) :: A(:,:)
+        real(dp), allocatable :: CM(:,:) ! result
+        real(dp), allocatable :: C(:,:) ! result
+
+        integer :: n,i,j,l,m,ielem
+        real(dp), allocatable :: Minor(:)
+
+        n = size(A,1)
+
+        ! Allocate and initialize
+        allocate(Minor((n-1)*(n-1)), CM(n,n), C((n-1),(n-1)))
+        Minor   = 0.0d0
+        CM  = 0.0d0
+
+        do i = 1,n
+            do j = 1,n
+                ielem = 1
+                do l = 1,n
+                    do m = 1,n
+                        if ((l.NE.i).AND.(m.NE.j)) then
+                            Minor(ielem) = A(l,m)
+                            ielem = ielem + 1
+                        end if
+                    end do
+                end do
+                C = transpose(reshape(Minor,[n-1,n-1]))
+                ! print *, C
+                CM(i,j) = (-1)**(i+j)*determinant(C)
+            end do
+        end do
+
+    end function cofactor
+    
     pure function determinant(M) result(D)
         implicit none
         integer, parameter :: dp = kind(0.d0)
         real(dp), intent(in) :: M(:,:)
         real(dp) :: D
 
-        D = M(1,1) * M(2,2) - M(1,2) * M(2,1)
+        integer :: n
+        n = size(M,1)
 
-        ! D = M(1,1) * (M(2,2) * M(3,3) - M(3,2) * M(2,3)) - &
-        !     M(1,2) * (M(2,1) * M(3,3) - M(3,1) * M(2,3)) + &
-        !     M(1,3) * (M(2,1) * M(3,2) - M(2,2) * M(3,1))
+        if (n.eq.2) then
+            D = M(1,1) * M(2,2) - M(1,2) * M(2,1)
+        else if (n.eq.3) then
+            D = M(1,1) * (M(2,2) * M(3,3) - M(3,2) * M(2,3)) - &
+                M(1,2) * (M(2,1) * M(3,3) - M(3,1) * M(2,3)) + &
+                M(1,3) * (M(2,1) * M(3,2) - M(2,2) * M(3,1))
+        else if (n.eq.4) then
+            D = M(1,1) * (M(2,2) * (M(3,3) * M(4,4) - M(4,3) * M(3,4)) - &
+                        M(2,3) * (M(3,2) * M(4,4) - M(4,2) * M(3,4)) + &
+                        M(2,4) * (M(3,2) * M(4,3) - M(3,3) * M(4,2))) - &
+                M(1,2) * (M(2,1) * (M(3,3) * M(4,4) - M(4,3) * M(3,4)) - &
+                        M(2,3) * (M(3,1) * M(4,4) - M(4,1) * M(3,4)) + &
+                        M(2,4) * (M(3,1) * M(4,3) - M(3,3) * M(4,1))) + &
+                M(1,3) * (M(2,1) * (M(3,2) * M(4,4) - M(4,2) * M(3,4)) - &
+                        M(2,2) * (M(3,1) * M(4,4) - M(4,1) * M(3,4)) + &
+                        M(2,4) * (M(3,1) * M(4,2) - M(3,2) * M(4,1))) - &
+                M(1,4) * (M(2,1) * (M(3,2) * M(4,3) - M(4,2) * M(3,3)) - &
+                        M(2,2) * (M(3,1) * M(4,3) - M(4,1) * M(3,3)) + &
+                        M(2,3) * (M(3,1) * M(4,2) - M(3,2) * M(4,1)))
+        end if
+
 
     end function determinant
+
+
 
 end module fem2d

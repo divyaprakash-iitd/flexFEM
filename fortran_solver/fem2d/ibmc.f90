@@ -71,7 +71,7 @@ program ibmc
     ! print *, yb
 
     !Apply boundary forces
-    FXC = 0.50d0
+    FXC = 0.250d0
     FYC = 0.0d0
     fxleft = merge(-1.0D0*fxc,0.0d0,isLeftPatch)
     fxright = merge(1.0D0*fxc,0.0d0,isRightPatch)
