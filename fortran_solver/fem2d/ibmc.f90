@@ -1,10 +1,11 @@
 program ibmc
     use soft_particles
     use iso_c_binding, only: c_int, c_double, c_loc
+    use matrix_writer
     implicit none
 
     integer(C_INT) :: n, niter, iter
-    logical, allocatable :: isOnPerimeter(:), isOnLeftSector(:), isOnRightSector(:), & 
+    logical, allocatable :: isOnPerimeter(:), isBetweenAngleRange(:), & 
                                 isOnLeft(:), isOnRight(:), isLeftPatch(:), isRightPatch(:)
     real(c_double) :: a, b, eps, dt, radius
     real(c_double), allocatable :: XP(:), YP(:), X1(:), Y1(:)
@@ -12,7 +13,7 @@ program ibmc
     real(c_double), allocatable :: F1XC(:),F1YC(:), F1ZC(:), U(:), V(:), W(:)
     real(c_double), allocatable :: X(:),Y(:),Z(:), nangle(:), xb(:), yb(:)
     ! real(c_double), parameter :: pi = acos(-1.0)
-    real(c_double) :: angle45
+    real(c_double) :: angle45, angle135
     logical, allocatable :: rmask(:), lmask(:)
     
     call sayhello()
@@ -50,14 +51,21 @@ program ibmc
     isOnRight = X > 0.0d0
 
     ! Mask based on angle
-    nangle = atan2(Y,X)
+    ! nangle = atan2(Y,X)
+    nangle = atan(Y/X)
     angle45 = 45.0 * pi / 180.0
-    isOnLeftSector = abs(nangle) > angle45
-    isOnRightSector = abs(nangle) < angle45
+    isBetweenAngleRange = abs(nangle) <= angle45
 
     ! Final masks
-    isLeftPatch = isOnPerimeter .and. isOnLeft .and. isOnLeftSector
-    isRightPatch = isOnPerimeter .and. isOnRight .and. isOnRightSector
+    isLeftPatch = isOnPerimeter .and. isOnLeft .and. isBetweenAngleRange
+    isRightPatch = isOnPerimeter .and. isOnRight .and. isBetweenAngleRange
+    
+    ! call write_to_file('isLeftPatch.txt', int(isLeftPatch))
+    ! call write_to_file('isRightPatch.txt', int(isRightPatch))
+    ! print *, shape(isLeftPatch), shape(isRightPatch)
+    call write_to_file('isLeftPatch.txt', int(merge(1, 0, isLeftPatch),8))
+    call write_to_file('isRightPatch.txt', int(merge(1, 0, isRightPatch),8))
+
 
     ! XP = merge(X, 0.0d0, isOnPerimeter)
     ! YP = merge(Y, 0.0d0, isOnPerimeter)
