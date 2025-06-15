@@ -35,9 +35,9 @@ for filename in file_list:
         data = np.loadtxt(os.path.join(input_dir, filename))
         
         # Check if we have exactly two rows (x and y)
-        if data.shape[0] != 2:
-            print(f"Skipping {filename}: expected 2 rows, found {data.shape[0]}")
-            continue
+        #if data.shape[0] != 2:
+        #    print(f"Skipping {filename}: expected 2 rows, found {data.shape[0]}")
+        #    continue
             
         x_coords = data[0, :]
         y_coords = data[1, :]

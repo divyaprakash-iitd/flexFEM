@@ -6,7 +6,7 @@ program ibmc
     integer(C_INT) :: n, niter, iter
     logical, allocatable :: isOnPerimeter(:), isOnLeftSector(:), isOnRightSector(:), & 
                                 isOnLeft(:), isOnRight(:), isLeftPatch(:), isRightPatch(:)
-    real(c_double) :: a, b, eps, dt
+    real(c_double) :: a, b, eps, dt, radius
     real(c_double), allocatable :: XP(:), YP(:), X1(:), Y1(:)
     real(c_double), allocatable :: FXC(:),FYC(:), Fxleft(:), Fxright(:), fxboundary(:), fyboundary(:)
     real(c_double), allocatable :: F1XC(:),F1YC(:), F1ZC(:), U(:), V(:), W(:)
@@ -22,6 +22,7 @@ program ibmc
     a     = 2.5e-4
     b     = 1.25e-4
     eps    = 1.0e-4
+    radius = 1.0d0
 
 
     ! Generate ellipse
@@ -41,7 +42,8 @@ program ibmc
     allocate(isOnPerimeter(n))
     
     ! Mask based on ellipse condition
-    isOnPerimeter = abs((X/a)**2 + (Y/b)**2 - 1.0d0) < eps
+    ! isOnPerimeter = abs((X/a)**2 + (Y/b)**2 - 1.0d0) < eps
+    isOnPerimeter = abs(X**2 + Y**2 - radius**2) < eps
     
     ! Mask based on x-location
     isOnLeft = X < 0.0d0
@@ -71,7 +73,7 @@ program ibmc
     ! print *, yb
 
     !Apply boundary forces
-    FXC = 0.250d0
+    FXC = 500.0d0 !0.250d0
     FYC = 0.0d0
     fxleft = merge(-1.0D0*fxc,0.0d0,isLeftPatch)
     fxright = merge(1.0D0*fxc,0.0d0,isRightPatch)

@@ -1,6 +1,10 @@
 module soft_particles
     use mod_io
     use fem2d
+    use mesh_module
+    use matrix_writer
+    use, intrinsic :: iso_c_binding
+
     implicit none
 
     ! Parameters
@@ -48,32 +52,55 @@ module soft_particles
     implicit none
 
     integer(C_INT), intent(inout) :: noelpts
+    ! This subroutine generates the ellipse and its connectivity
+    integer(c_size_t), allocatable :: nodeTagsAll(:)
+    integer(c_size_t), allocatable :: connectivity(:)
+    real(c_double), allocatable :: coordAll(:)
+    integer :: ierr, i
+
+
+    call get_nodes_connectivity("donut2d_mesh.msh", connectivity, nodeTagsAll, coordAll, ierr)
+    pp = transpose(reshape(coordAll,[3,size(coordAll)/3]))
+    ! mp = transpose(reshape(int(connectivity, kind=4),[3,size(connectivity)/3]))
+    mp = transpose(reshape(connectivity,[3,size(connectivity)/3]))
+    FN = pp*0.0d0
+    UN = pp*0.0d0
+
+    print *, "Number of nodes: ", size(pp,1)
+    print *, "Number of elements: ", size(mp,1)
 
     ! Read input data from file
     open(1004,file="input_params.dat",form='formatted')
     READ(unit=1004,nml=particleprops,iostat=err)
     close(1004)
-    ! Allocate fem variables
-    !------- femdata----------!
-    OPEN(33, FILE="femdata.bin",&
-     FORM="UNFORMATTED", STATUS="UNKNOWN", ACTION="READ", ACCESS='STREAM')
-    READ(33) femdata
-    close(33)
-    !---------------------!
-    npp         = femdata(1)
-    ntri        = femdata(2)
-    nparticle   = 1
-    allocate(mp(ntri,3), pb(ntri,2,3), pp(npp,2), paelem(ntri), & 
-                FN(npp,2), UN(npp,2), pboundary(npp,2), particles(nparticle))
+    ! ! Allocate fem variables
+    ! !------- femdata----------!
+    ! OPEN(33, FILE="femdata.bin",&
+    !  FORM="UNFORMATTED", STATUS="UNKNOWN", ACTION="READ", ACCESS='STREAM')
+    ! READ(33) femdata
+    ! close(33)
+    ! !---------------------!
+    ! npp         = femdata(1)
+    ! ntri        = femdata(2)
+    ! nparticle   = 1
+    ! allocate(mp(ntri,3), pb(ntri,2,3), pp(npp,2), paelem(ntri), & 
+    !             FN(npp,2), UN(npp,2), pboundary(npp,2), particles(nparticle))
 
-    print *, npp, ntri
+    ! print *, npp, ntri
     
     ! Create fem particle
-    call read_fem_data(mp,paelem,pb,pp)
-    pboundary = .FALSE.
+    ! call read_fem_data(mp,paelem,pb,pp)
+    ! pboundary = .FALSE.
     ! PP(:,1) = PP(:,1)! + Lx/2.0d0 
     ! PP(:,2) = PP(:,2)! + Ly/2.0d0  
+    
+    !! Read the connectivity and coordinates by calling subroutines from the mesh_module
+
+    print *, "Done!"
+    nparticle   = 1
+    allocate(particles(nparticle))
     particles(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
+    print *, "Particle created with Kp: ", Kp, " and Bp: ", Bp
 
     ! Open the file for writing
     OPEN(UNIT=10, FILE="MP.txt", STATUS='replace', ACTION='write')
