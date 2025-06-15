@@ -113,7 +113,10 @@ module soft_particles
 
     noelpts = size(particles(1)%XE,1)
     itnum = 1
+
     call write_field(particles(1)%XE,'P',itnum)
+    call write_to_file('connectivity.txt', reshape(connectivity,[3,size(connectivity)/3]))
+
 
     end subroutine generateellipse
    

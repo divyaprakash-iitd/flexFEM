@@ -81,9 +81,12 @@ program ibmc
     fyboundary = 0.0d0*fxboundary
 
     print *, fxboundary
-    niter = 10000
+    niter = 50000
     dt = 0.001
     do iter = 1, niter
+        if (iter .gt. niter/2) then
+            fxboundary = 0.0d0
+        end if
         ! print *, fxboundary
         ! Call applyboundaryforces inside of calculateforces and make the fx/fyboundary optional
         ! Make sure that fden is initialised as zero at the start of every iteration
