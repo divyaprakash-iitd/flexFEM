@@ -20,23 +20,28 @@ def create_vtk_mesh(coords, connectivity, point_data=None):
 
     grid = pv.UnstructuredGrid(cells, celltypes, coords)
     
+    # Add point data if provided
     if point_data is not None:
-        if point_data.ndim == 1:
-            grid.point_data['data'] = point_data
-        else:
-            for i in range(point_data.shape[1]):
-                grid.point_data[f'data_{i}'] = point_data[:, i]
+        for name, data in point_data.items():
+            grid.point_data[name] = data  # e.g., 'force', 'displacement'
     
     return grid
 
 conn = np.loadtxt("connectivity.txt", dtype=int)  # shape (M, 3)
 # Subtract 1 to get the python index starting from 0
 conn = conn - 1
-files = glob.glob("P_*.txt")
-sorted_files = sorted(files, key=lambda x: int(x.split('_')[1].split('.')[0]))
-for i, file in enumerate(sorted_files):
-    coords = np.loadtxt(file)  # shape (N, 2) or (N, 3)
-    mesh = create_vtk_mesh(coords.T, conn.T)
+pfiles = glob.glob("P_*.txt")
+ffiles = glob.glob("F_*.txt")
+sorted_files_p = sorted(pfiles, key=lambda x: int(x.split('_')[1].split('.')[0]))
+sorted_files_f = sorted(ffiles, key=lambda x: int(x.split('_')[1].split('.')[0]))
+for i, (pfile, ffile) in enumerate(zip(sorted_files_p, sorted_files_f)):
+    coords = np.loadtxt(pfile)  # shape (N, 2) or (N, 3)
+    forces = np.loadtxt(ffile)  # shape (N, 2) or (N, 3)
+    point_data = {
+        'force': forces.T          # Shape (N, 2) or (N, 3)
+        #'displacement': disp.T      # Optional additional fields
+    }
+    mesh = create_vtk_mesh(coords.T, conn.T, point_data)
     mesh.save(f"mesh_{i:04d}.vtu")
 
 #plotter = pv.Plotter()

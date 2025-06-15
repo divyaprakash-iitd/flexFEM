@@ -32,6 +32,7 @@ module soft_particles
     logical, allocatable        :: pboundary(:,:)
     integer(int32)              :: femdata(2)
     integer(int32)              :: i, j, err
+    character(len=20)           :: filename
 
     ! Namelists for input
     namelist /particleprops/ Kp, nvp, Bp, aa, bb
@@ -114,7 +115,7 @@ module soft_particles
     noelpts = size(particles(1)%XE,1)
     itnum = 1
 
-    call write_field(particles(1)%XE,'P',itnum)
+    ! call write_field(particles(1)%XE,'P',itnum)
     call write_to_file('connectivity.txt', reshape(connectivity,[3,size(connectivity)/3]))
 
 
@@ -228,6 +229,9 @@ module soft_particles
         
         if (mod(itnum,200).eq.0) then
             call write_field(particles(1)%XE,'P',itnum)
+            call write_field(particles(1)%fden,'F',itnum)
+            !write(filename, '(A,I5.5,A)') 'F_', itnum, '.dat'
+
         end if
 
         do i = 1,nparticles
