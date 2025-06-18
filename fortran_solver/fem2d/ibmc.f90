@@ -10,14 +10,15 @@ program ibmc
     real(c_double) :: a, b, eps, dt, radius
     real(c_double), allocatable :: XP(:), YP(:), X1(:), Y1(:)
     real(c_double), allocatable :: FXC(:),FYC(:), Fxleft(:), Fxright(:), fxboundary(:), fyboundary(:)
-    real(c_double), allocatable :: F1XC(:),F1YC(:), F1ZC(:), U(:), V(:), W(:)
+    real(c_double), allocatable :: F1XC(:),F1YC(:), F1ZC(:)
     real(c_double), allocatable :: X(:),Y(:),Z(:), nangle(:), xb(:), yb(:)
     ! real(c_double), parameter :: pi = acos(-1.0)
-    real(c_double) :: angle45, angle135
-    logical, allocatable :: rmask(:), lmask(:)
+    real(c_double) :: angle45
+ 
+    ! Measure time
+    real :: t_start, t_end, t_elapsed
+
     
-    call sayhello()
-   
     ! Particle (Ellipse) parameters
     ! To-DO: Add functionality to read them using namelist
     a     = 2.5e-4
@@ -27,9 +28,7 @@ program ibmc
 
 
     ! Generate ellipse
-    ! print *, "n = ", n
     call generateellipse(n)
-    ! print *, "n = ", n
     allocate(FXC(n), FYC(n),X1(n),Y1(n))
     allocate(F1XC(n), F1YC(n), F1ZC(n))    
     allocate(X(n), Y(n), Z(n),nangle(n))
@@ -42,8 +41,7 @@ program ibmc
     ! Allocate mask
     allocate(isOnPerimeter(n))
     
-    ! Mask based on ellipse condition
-    ! isOnPerimeter = abs((X/a)**2 + (Y/b)**2 - 1.0d0) < eps
+    ! Mask based on circle condition
     isOnPerimeter = abs(X**2 + Y**2 - radius**2) < eps
     
     ! Mask based on x-location
@@ -51,7 +49,6 @@ program ibmc
     isOnRight = X > 0.0d0
 
     ! Mask based on angle
-    ! nangle = atan2(Y,X)
     nangle = atan(Y/X)
     angle45 = 45.0 * pi / 180.0
     isBetweenAngleRange = abs(nangle) <= angle45
@@ -60,25 +57,13 @@ program ibmc
     isLeftPatch = isOnPerimeter .and. isOnLeft .and. isBetweenAngleRange
     isRightPatch = isOnPerimeter .and. isOnRight .and. isBetweenAngleRange
     
-    ! call write_to_file('isLeftPatch.txt', int(isLeftPatch))
-    ! call write_to_file('isRightPatch.txt', int(isRightPatch))
-    ! print *, shape(isLeftPatch), shape(isRightPatch)
     call write_to_file('isLeftPatch.txt', int(merge(1, 0, isLeftPatch),8))
     call write_to_file('isRightPatch.txt', int(merge(1, 0, isRightPatch),8))
-
-
-    ! XP = merge(X, 0.0d0, isOnPerimeter)
-    ! YP = merge(Y, 0.0d0, isOnPerimeter)
 
     XP = pack(X, isOnPerimeter)
     YP = pack(Y, isOnPerimeter)
     xb = pack(X, isRightPatch)
     yb = pack(Y, isRightPatch)
-
-    ! print *, xp
-    ! print *, yp
-    ! print *, xb
-    ! print *, yb
 
     !Apply boundary forces
     FXC = 500.0d0 !0.250d0
@@ -88,14 +73,13 @@ program ibmc
     fxboundary = fxleft + fxright
     fyboundary = 0.0d0*fxboundary
 
-    print *, fxboundary
     niter = 50000
     dt = 0.001
+    call cpu_time(t_start)
     do iter = 1, niter
         if (iter .gt. niter/2) then
             fxboundary = 0.0d0
         end if
-        ! print *, fxboundary
         ! Call applyboundaryforces inside of calculateforces and make the fx/fyboundary optional
         ! Make sure that fden is initialised as zero at the start of every iteration
         call applyboundaryforces(fxboundary,fyboundary,n)
@@ -103,6 +87,20 @@ program ibmc
     
         call calculateforces()
         call updatepositions(dt)
+        !  ! Print progress every 1000 iterations
+        ! if (mod(iter, niter/100) == 0 .or. iter == niter) then
+        !     write(*,'(A,I6,A,I6,A,F6.2,A)') "Progress: Iteration ", iter, " /", niter, " (", 100.0*iter/niter, "%)"
+        ! end if
+
+        ! Print progress bar every 500 iterations
+        if (mod(iter, 1000) == 0 .or. iter == niter) then
+            write(*,'(A,I6,A,I6,A,F6.2,A)', advance='no') achar(13)//"Simulation Progress: Iter " &
+                , iter, " /", niter, " (", 100.0*iter/niter, "%)"
+            if (iter == niter) write(*,*) ! Move to next line at the end
+        end if
     end do
+    call cpu_time(t_end)
+    t_elapsed = t_end - t_start
+    print *, "Simulation loop time (seconds): ", t_elapsed
 
 end program ibmc
