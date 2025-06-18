@@ -8,7 +8,7 @@ program ibmc
     logical, allocatable :: isOnPerimeter(:), isBetweenAngleRange(:), & 
                                 isOnLeft(:), isOnRight(:), isLeftPatch(:), isRightPatch(:)
     real(c_double) :: eps, dt, radius
-    real(c_double), allocatable :: XP(:), YP(:), X1(:), Y1(:)
+    real(c_double), allocatable :: XE(:,:), FE(:,:), X1(:), Y1(:), XP(:), YP(:)
     real(c_double), allocatable :: FXC(:),FYC(:), Fxleft(:), Fxright(:), fxboundary(:), fyboundary(:)
     real(c_double), allocatable :: F1XC(:),F1YC(:), F1ZC(:)
     real(c_double), allocatable :: X(:),Y(:),Z(:), nangle(:), xb(:), yb(:)
@@ -29,11 +29,15 @@ program ibmc
     allocate(FXC(n), FYC(n),X1(n),Y1(n))
     allocate(F1XC(n), F1YC(n), F1ZC(n))    
     allocate(X(n), Y(n), Z(n),nangle(n))
+    allocate(XE(n,3), FE(n,3))
 
     ! Use get positions to get the cooridinates of the particles
     ! Then create masks based on a criteria that gets you the points 
     ! on a sector spanning -30 to 30 degrees and -150 to 150 degrees
-    call getpositions(X,Y,Z,n)
+    call getpositions(XE,n)
+    X = XE(:,1)
+    Y = XE(:,2)
+
 
     ! Allocate mask
     allocate(isOnPerimeter(n))
@@ -82,8 +86,31 @@ program ibmc
         call applyboundaryforces(fxboundary,fyboundary,n)
         ! call applyboundaryforces(Fright,FYC,n)
     
+        ! Implement getforces so that forces are sent back and you write them to files here.
+        ! Do the same with getpositions
         call calculateforces()
+        call getforces(FE,n)
         call updatepositions(dt)
+        call getpositions(XE,n)
+        
+        if (mod(itnum,200).eq.0) then
+            ! call write_field(particles(1)%XE,'P',itnum)
+            ! call write_field(particles(1)%fden,'F',itnum)
+            write(filename, '(A,I8.8,A)') 'F_', itnum, '.txt'
+            call write_to_file(filename, FE)
+            write(filename, '(A,I8.8,A)') 'P_', itnum, '.txt'
+            call write_to_file(filename, XE)
+
+        end if
+
+        ! To-Do:
+        ! 1. applyboundaryforces 
+        ! 2. calculateforces 
+        ! 3. getforces 
+        ! 4. updatepositions  
+        ! 5. getpositions
+        ! 6. write_to_file for forces and positions 
+
 
         ! Print progress bar every 500 iterations
         if (mod(iter, 1000) == 0 .or. iter == niter) then

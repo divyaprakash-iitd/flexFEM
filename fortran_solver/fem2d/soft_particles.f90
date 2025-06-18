@@ -73,14 +73,36 @@ module soft_particles
 
     end subroutine generateellipse
 
-    subroutine getpositions(XC,YC,ZC,nn) bind(C)
+    subroutine getforces(FE,nn) bind(C)
         ! It takes in the position arrays defined in openfoam and fills
         ! it with the particle's position values
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
         integer(c_int), intent(in)      :: nn
-        real(c_double), intent(inout)   :: XC(nn),YC(nn),ZC(nn)
+        real(c_double), intent(inout)   :: FE(nn,3)
+
+        integer(int32) :: i, nparticles, npoints
+
+        nparticles = 1
+
+        npoints = size(particles(1)%XE,1)
+
+        do i = 1,npoints
+            FE(i,1)   = particles(1)%fden(i,1)
+            FE(i,2)   = particles(1)%fden(i,2)
+            FE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
+        end do
+    end subroutine getforces
+
+    subroutine getpositions(XE, nn) bind(C)
+        ! It takes in the position arrays defined in openfoam and fills
+        ! it with the particle's position values
+        use iso_c_binding, only: c_int, c_double, c_loc
+        implicit none
+
+        integer(c_int), intent(in)      :: nn
+        real(c_double), intent(inout)   :: XE(nn,3)
 
         integer(int32) :: i, nparticles, npoints
 
@@ -90,9 +112,9 @@ module soft_particles
         npoints = size(particles(1)%XE,1)
 
         do i = 1,npoints
-            XC(i)   = particles(1)%XE(i,1)
-            YC(i)   = particles(1)%XE(i,2)
-            ZC(i)   = 0.0d0 ! 2D problem, so Z is always 0
+            XE(i,1)   = particles(1)%XE(i,1)
+            XE(i,2)   = particles(1)%XE(i,2)
+            XE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
         end do
     end subroutine getpositions
     
@@ -123,7 +145,6 @@ module soft_particles
    
     subroutine calculateforces() bind(C)
         ! Calculates the forces in the particle
-        ! Transfers those forces to the arrays passed in by openfoam
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
@@ -156,15 +177,6 @@ module soft_particles
 
         itnum = itnum + 1
         
-        if (mod(itnum,200).eq.0) then
-            ! call write_field(particles(1)%XE,'P',itnum)
-            ! call write_field(particles(1)%fden,'F',itnum)
-            write(filename, '(A,I8.8,A)') 'F_', itnum, '.txt'
-            call write_to_file(filename, particles(1)%fden)
-            write(filename, '(A,I8.8,A)') 'P_', itnum, '.txt'
-            call write_to_file(filename, particles(1)%XE)
-
-        end if
 
         do i = 1,nparticles
             call particles(i)%update_position(dt)
