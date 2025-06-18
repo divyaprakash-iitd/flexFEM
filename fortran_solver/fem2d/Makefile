@@ -6,7 +6,6 @@ LDFLAGS = -L/usr/local/lib
 LIBS = -lgmsh
 
 # Directories
-MESH_DIR = ../mesh_handling_fortran
 GMSH_INCLUDE = /usr/local/include
 
 # Target executable
@@ -35,23 +34,11 @@ $(TARGET): $(OBJS)
 gmsh.o: $(GMSH_INCLUDE)/gmsh.f90
 	$(FC) $(FFLAGS) -c $<
 
-# Compile files from mesh handling directory
-matrix_writer.o: $(MESH_DIR)/matrix_writer.f90
-	$(FC) $(FFLAGS) -c $<
-
-mesh_module.o: $(MESH_DIR)/mesh_module.f90
-	$(FC) $(FFLAGS) -c $<
-
-# Dependencies (based on compilation order in script)
-# Basic modules compiled first
-gmsh.o:
-matrix_writer.o:
-mesh_module.o:
-
-# soft_particles.f90 uses fem2d, mesh_module, and matrix_writer
+# Dependencies
+matrix_writer.o: gmsh.o
+mesh_module.o: gmsh.o matrix_writer.o
+fem2d.o: mesh_module.o
 soft_particles.o: fem2d.o mesh_module.o matrix_writer.o
-
-# main.f90 uses soft_particles module
 main.o: soft_particles.o
 
 # Clean up generated files
@@ -61,15 +48,3 @@ clean:
 # Phony targets
 .PHONY: all clean
 
-# Additional useful targets
-rebuild: clean all
-
-install: $(TARGET)
-	@echo "Add installation commands here if needed"
-
-help:
-	@echo "Available targets:"
-	@echo "  all      - Build the $(TARGET) executable (default)"
-	@echo "  clean    - Remove object files, modules, and executable"
-	@echo "  rebuild  - Clean and build from scratch"
-	@echo "  help     - Show this help message"

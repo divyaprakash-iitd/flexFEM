@@ -1,4 +1,4 @@
-program ibmc
+program main
     use soft_particles
     use iso_c_binding, only: c_int, c_double, c_loc
     use matrix_writer
@@ -25,7 +25,7 @@ program ibmc
 
 
     ! Generate ellipse
-    call generateellipse(n)
+    call generatefestructures(n)
     allocate(FXC(n), FYC(n),X1(n),Y1(n))
     allocate(F1XC(n), F1YC(n), F1ZC(n))    
     allocate(X(n), Y(n), Z(n),nangle(n))
@@ -58,8 +58,8 @@ program ibmc
     isLeftPatch = isOnPerimeter .and. isOnLeft .and. isBetweenAngleRange
     isRightPatch = isOnPerimeter .and. isOnRight .and. isBetweenAngleRange
     
-    call write_to_file('isLeftPatch.txt', int(merge(1, 0, isLeftPatch),8))
-    call write_to_file('isRightPatch.txt', int(merge(1, 0, isRightPatch),8))
+    ! call write_to_file('isLeftPatch.txt', int(merge(1, 0, isLeftPatch),8))
+    ! call write_to_file('isRightPatch.txt', int(merge(1, 0, isRightPatch),8))
 
     XP = pack(X, isOnPerimeter)
     YP = pack(Y, isOnPerimeter)
@@ -83,34 +83,20 @@ program ibmc
         end if
         ! Call applyboundaryforces inside of calculateforces and make the fx/fyboundary optional
         ! Make sure that fden is initialised as zero at the start of every iteration
+        
         call applyboundaryforces(fxboundary,fyboundary,n)
-        ! call applyboundaryforces(Fright,FYC,n)
-    
-        ! Implement getforces so that forces are sent back and you write them to files here.
-        ! Do the same with getpositions
         call calculateforces()
         call getforces(FE,n)
         call updatepositions(dt)
         call getpositions(XE,n)
         
-        if (mod(itnum,200).eq.0) then
-            ! call write_field(particles(1)%XE,'P',itnum)
-            ! call write_field(particles(1)%fden,'F',itnum)
-            write(filename, '(A,I8.8,A)') 'F_', itnum, '.txt'
+        if (mod(iter,200).eq.0) then
+            write(filename, '(A,I8.8,A)') 'F_', iter, '.txt'
             call write_to_file(filename, FE)
-            write(filename, '(A,I8.8,A)') 'P_', itnum, '.txt'
+            write(filename, '(A,I8.8,A)') 'P_', iter, '.txt'
             call write_to_file(filename, XE)
 
         end if
-
-        ! To-Do:
-        ! 1. applyboundaryforces 
-        ! 2. calculateforces 
-        ! 3. getforces 
-        ! 4. updatepositions  
-        ! 5. getpositions
-        ! 6. write_to_file for forces and positions 
-
 
         ! Print progress bar every 500 iterations
         if (mod(iter, 1000) == 0 .or. iter == niter) then
@@ -123,4 +109,4 @@ program ibmc
     t_elapsed = t_end - t_start
     print *, "Simulation loop time (seconds): ", t_elapsed
 
-end program ibmc
+end program main
