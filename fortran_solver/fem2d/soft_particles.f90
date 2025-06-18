@@ -104,13 +104,13 @@ module soft_particles
         end do
     end subroutine getpositions
     
-    subroutine applyboundaryforces(FXC,FYC,nn) bind(C)
+    subroutine calculateforces(FXC,FYC,nn) bind(C)
         ! Applies the boundary forces to the particle
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
         integer(c_int), intent(in)   :: nn
-        real(c_double), intent(in)   :: FXC(nn),FYC(nn)
+        real(c_double), intent(in), optional   :: FXC(nn),FYC(nn)
 
         integer(int32) :: i, npoints
 
@@ -120,23 +120,16 @@ module soft_particles
         structures(1)%fden = 0.0d0
 
         ! Apply boundary forces
-        do i = 1, nn
-            structures(1)%fden(i,1) = FXC(i)
-            structures(1)%fden(i,2) = FYC(i)
-        end do
+        if (present(FXC) .and. present(FYC)) then
+            do i = 1, nn
+                structures(1)%fden(i,1) = FXC(i)
+                structures(1)%fden(i,2) = FYC(i)
+            end do
+        end if
 
-    end subroutine applyboundaryforces
-
-   
-    subroutine calculateforces() bind(C)
-        ! Calculates the forces in the particle
-        use iso_c_binding, only: c_int, c_double, c_loc
-        implicit none
-
+        ! Calculate forces
         call structures(1)%calculate_forces()
-
     end subroutine calculateforces
-
 
     subroutine updatepositions(dt) bind(C)
         use iso_c_binding, only: c_int, c_double, c_loc

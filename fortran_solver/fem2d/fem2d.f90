@@ -54,7 +54,7 @@ module fem2d
         real(real64) :: djdx(size(self%M,1),2,3)
         real(real64) :: jac(size(self%M,1))
         real(real64) :: F(size(self%M,1),2,3)
-        integer :: j, k, nelem, nidx, ipoints
+        integer :: j, k, nelem, nidx
 
         nelem = size(self%M,1)
 
