@@ -27,7 +27,7 @@ def create_vtk_mesh(coords, connectivity, point_data=None):
     
     return grid
 
-conn = np.loadtxt("connectivity.txt", dtype=int)  # shape (M, 3)
+conn = np.loadtxt("connectivity.txt", dtype=int)  # Required shape (M, 3) But original shape (3, M)
 # Subtract 1 to get the python index starting from 0
 conn = conn - 1
 pfiles = glob.glob("P_*.txt")
@@ -38,10 +38,10 @@ for i, (pfile, ffile) in enumerate(zip(sorted_files_p, sorted_files_f)):
     coords = np.loadtxt(pfile)  # shape (N, 2) or (N, 3)
     forces = np.loadtxt(ffile)  # shape (N, 2) or (N, 3)
     point_data = {
-        'force': forces.T          # Shape (N, 2) or (N, 3)
-        #'displacement': disp.T      # Optional additional fields
+        'force': forces          # Shape (N, 2) or (N, 3)
+        #'displacement': disp      # Optional additional fields
     }
-    mesh = create_vtk_mesh(coords.T, conn.T, point_data)
+    mesh = create_vtk_mesh(coords, conn.T, point_data)
     mesh.save(f"mesh_{i:04d}.vtu")
 
 #plotter = pv.Plotter()

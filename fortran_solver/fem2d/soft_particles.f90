@@ -1,5 +1,4 @@
 module soft_particles
-    use mod_io
     use fem2d
     use mesh_module
     use matrix_writer
@@ -9,10 +8,6 @@ module soft_particles
 
     ! Parameters
     real(8), parameter :: PI = 3.141592653589793
-    
-    ! Computational Domain
-    real(8)    :: Lx = 25 !50 !0.3
-    real(8)    :: Ly = 25 !50 !0.1
     
     ! Particle information
     integer         :: nvp ! Number of vertices in the particle
@@ -40,12 +35,6 @@ module soft_particles
     !---------------------- Begin Calculations ------------------------------------!
 
     contains 
-
-    subroutine sayhello() bind(C)
-        use iso_c_binding, only: C_INT, C_CHAR
-        implicit none
-        print *, "Hello!"
-    end subroutine sayhello
 
     ! subroutine generateellipse(noelpts)
     subroutine generateellipse(noelpts) bind(C)
@@ -95,28 +84,6 @@ module soft_particles
 
 
     end subroutine generateellipse
-   
-    subroutine arraycheck(pxyz,n) bind(C)
-        use iso_c_binding, only: c_int, c_double, c_loc
-        implicit none
-        
-        integer(c_int), intent(in) :: n
-        real(c_double), intent(inout)   :: pxyz(n)
-        ! integer(c_int), intent(inout)   :: pxyz(:)
-        ! integer(c_int), intent(inout)   :: pxyz(n)
-        
-        integer(int32) :: i, npoints
-        npoints = size(particles(1)%XE,1)
-       
-        ! print *, "SIZE: ", size(pxyz)
-        ! print *, "pxyz1: ", pxyz(5)
-        do i = 1,5!npoints
-            ! pxyz(i)   = particles(1)%XE(i,1)
-            pxyz(i)   = 23651491.23
-        end do
-
-
-    end subroutine arraycheck
 
     subroutine getpositions(XC,YC,ZC,nn) bind(C)
         ! It takes in the position arrays defined in openfoam and fills
@@ -203,9 +170,12 @@ module soft_particles
         itnum = itnum + 1
         
         if (mod(itnum,200).eq.0) then
-            call write_field(particles(1)%XE,'P',itnum)
-            call write_field(particles(1)%fden,'F',itnum)
-            !write(filename, '(A,I5.5,A)') 'F_', itnum, '.dat'
+            ! call write_field(particles(1)%XE,'P',itnum)
+            ! call write_field(particles(1)%fden,'F',itnum)
+            write(filename, '(A,I8.8,A)') 'F_', itnum, '.txt'
+            call write_to_file(filename, particles(1)%fden)
+            write(filename, '(A,I8.8,A)') 'P_', itnum, '.txt'
+            call write_to_file(filename, particles(1)%XE)
 
         end if
 

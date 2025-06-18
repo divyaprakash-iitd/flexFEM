@@ -14,8 +14,6 @@ TARGET = ibmc
 
 # Object files
 OBJS = ibmc.o \
-       mod_solid.o \
-       mod_io.o \
        fem2d.o \
        soft_particles.o \
        gmsh.o \
@@ -46,17 +44,12 @@ mesh_module.o: $(MESH_DIR)/mesh_module.f90
 
 # Dependencies (based on compilation order in script)
 # Basic modules compiled first
-mod_solid.o: 
-mod_io.o:
 gmsh.o:
 matrix_writer.o:
 mesh_module.o:
 
-# fem2d.f90 uses mod_solid
-fem2d.o: mod_solid.o
-
-# soft_particles.f90 uses mod_io, fem2d, mesh_module, and matrix_writer
-soft_particles.o: mod_io.o fem2d.o mesh_module.o matrix_writer.o
+# soft_particles.f90 uses fem2d, mesh_module, and matrix_writer
+soft_particles.o: fem2d.o mesh_module.o matrix_writer.o
 
 # ibmc.f90 uses soft_particles module
 ibmc.o: soft_particles.o

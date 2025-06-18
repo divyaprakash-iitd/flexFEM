@@ -16,7 +16,7 @@
 /obj/
 /CMakeFiles/
 /CMakeCache.txt
-Makefile
+#Makefile
 cmake_install.cmake
 install_manifest.txt
 

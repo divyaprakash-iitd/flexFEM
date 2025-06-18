@@ -4,22 +4,22 @@ module fem2d
     !           (Not necessarily type bound methods)
     
     use iso_fortran_env, only: int32, real64
-    use mod_solid
+    ! use mod_solid
     ! use calculate_forces
     implicit none
 
-    type, extends(solid) :: festruct
-    ! type :: festruct
-        ! integer(int32), allocatable :: M(:,:) ! Indices providing connectivity information
-        ! real(real64), allocatable :: XE(:,:) ! Coordinates of points
-        ! real(real64), allocatable :: b(:,:,:) ! Shape function coefficients
-        ! logical, allocatable :: boundary(:,:) ! Top, bottom, left and right boundaries
-        ! real(real64), allocatable :: aelem(:)
-        ! real(real64), allocatable :: fden(:,:)
-        ! real(real64), allocatable :: U(:,:)
-        ! real(real64) :: co
-        ! real(real64) :: kval = 10.0d0
-        ! real(real64) :: dl
+    ! type, extends(solid) :: festruct
+    type :: festruct
+        integer(int32), allocatable :: M(:,:) ! Indices providing connectivity information
+        real(real64), allocatable :: XE(:,:) ! Coordinates of points
+        real(real64), allocatable :: bc(:,:,:) ! Shape function coefficients
+        logical, allocatable :: boundary(:,:) ! Top, bottom, left and right boundaries
+        real(real64), allocatable :: aelem(:)
+        real(real64), allocatable :: fden(:,:)
+        real(real64), allocatable :: U(:,:)
+        real(real64) :: co
+        real(real64) :: kval = 10.0d0
+        real(real64) :: dl
 
         contains
             procedure :: calculate_forces
