@@ -1,3 +1,3 @@
 ./clean.sh
-cp ../../../main .
+cp ../../main .
 ./main
