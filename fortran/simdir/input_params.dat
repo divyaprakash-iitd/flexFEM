@@ -1,0 +1,7 @@
+!***********************************
+!*** Structure properties
+!***********************************
+&structureprops
+meshfile = 'donut2d_mesh.msh',
+Kp       = 10000,
+Bp       = 5000/
