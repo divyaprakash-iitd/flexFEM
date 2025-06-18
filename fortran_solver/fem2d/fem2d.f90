@@ -1,14 +1,7 @@
 module fem2d
-    ! TO-DO: 1. Name the module fem2d
-    !        2. Move all the required subroutines here
-    !           (Not necessarily type bound methods)
-    
     use iso_fortran_env, only: int32, real64
-    ! use mod_solid
-    ! use calculate_forces
     implicit none
 
-    ! type, extends(solid) :: festruct
     type :: festruct
         integer(int32), allocatable :: M(:,:) ! Indices providing connectivity information
         real(real64), allocatable :: XE(:,:) ! Coordinates of points
@@ -24,8 +17,6 @@ module fem2d
         contains
             procedure :: calculate_forces
             procedure :: update_position
-            procedure :: set_force
-            procedure :: set_velocity
             procedure :: shapecoefficients
 
     end type festruct
@@ -53,26 +44,9 @@ module fem2d
         self%kval = kval
         self%dl = dl
 
-        ! print *, self%bc(1,1,:)
-        ! print *, "--------------------------------------"
         call shapecoefficients(self)
-        ! print *, "--------------------------------------"
-        ! print *, "Shape coefficients: ", self%bc(1,1,:)   
     end function festruct_constructor
-
-    elemental subroutine set_force(self,fden)
-        class(festruct), intent(inout) :: self
-        real(real64), intent(in) :: fden
-        
-        integer(int32) :: ipoints
-    end subroutine set_force
     
-    elemental subroutine set_velocity(self,UN)
-        class(festruct), intent(inout) :: self
-        real(real64), intent(in) :: UN
-        self%U = UN 
-    end subroutine set_velocity
-
     elemental impure subroutine calculate_forces(self)
         class(festruct), intent(inout) :: self
         real(real64) :: D(size(self%M,1),2,2)
@@ -84,7 +58,6 @@ module fem2d
 
         nelem = size(self%M,1)
 
-        ! print *, "hi" 
         ! Calculate deformation gradient
         D = deformationgradient(self%M,self%XE,self%bc)
 
@@ -96,8 +69,6 @@ module fem2d
 
         ! Calculate the jacobian
         jac = jacobian(D)
-
-
 
         ! Calculate forces at each node per element 
         ! (3 nodes, 2 components of force per element)
@@ -118,9 +89,6 @@ module fem2d
             end do
         end do 
         
-        ! ! Fix the bottom nodes (Make force zero)
-        ! forall (ipoints = 1:size(self%XE,1), self%boundary(ipoints,2).eqv..True.) &
-        !     self%fden(ipoints,:) = 0.0d0
     end subroutine calculate_forces
     
     elemental subroutine update_position(self, dt)
@@ -219,21 +187,6 @@ module fem2d
         end do
 
     end function jacobian
-    ! end subroutine jacobian
-
-    ! pure function determinant(M) result(D)
-    !     implicit none
-    !     integer, parameter :: dp = kind(0.d0)
-    !     real(dp), intent(in) :: M(:,:)
-    !     real(dp) :: D
-
-    !     D = M(1,1) * M(2,2) - M(1,2) * M(2,1)
-
-    !     ! D = M(1,1) * (M(2,2) * M(3,3) - M(3,2) * M(2,3)) - &
-    !     !     M(1,2) * (M(2,1) * M(3,3) - M(3,1) * M(2,3)) + &
-    !     !     M(1,3) * (M(2,1) * M(3,2) - M(2,2) * M(3,1))
-
-    ! end function determinant
 
     subroutine shapecoefficients(self)
         implicit none
@@ -347,7 +300,5 @@ module fem2d
 
 
     end function determinant
-
-
 
 end module fem2d

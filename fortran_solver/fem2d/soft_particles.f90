@@ -1,7 +1,7 @@
 module soft_particles
     use fem2d
-    use mesh_module
-    use matrix_writer
+    use mesh_module, only: get_nodes_connectivity, get_physical_group_nodes
+    use matrix_writer, only: write_to_file
     use, intrinsic :: iso_c_binding
 
     implicit none
@@ -23,8 +23,6 @@ module soft_particles
     real(real64), allocatable   :: UN(:,:)
     logical, allocatable        :: pboundary(:,:)
     integer(int32)              :: femdata(2)
-    integer(int32)              :: i, j, err
-    character(len=20)           :: filename
 
     ! Namelists for input
     namelist /particleprops/ Kp, Bp
@@ -53,7 +51,7 @@ module soft_particles
 
         ! Read input data from file
         open(1004,file="input_params.dat",form='formatted')
-        READ(unit=1004,nml=particleprops,iostat=err)
+        READ(unit=1004,nml=particleprops,iostat=ierr)
         close(1004)
     
         ! Construct the structure
@@ -64,51 +62,44 @@ module soft_particles
         nnodes = size(structures(1)%XE,1)
 
         call write_to_file('connectivity.txt', reshape(connectivity,[3,size(connectivity)/3]))
-
-
+    
     end subroutine generatefestructures
 
     subroutine getforces(FE,nn) bind(C)
-        ! It takes in the position arrays defined in openfoam and fills
-        ! it with the particle's position values
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
         integer(c_int), intent(in)      :: nn
         real(c_double), intent(inout)   :: FE(nn,3)
 
-        integer(int32) :: i, nparticles, npoints
+        integer(int32) :: nparticles, npoints, i
 
         nparticles = 1
-
         npoints = size(structures(1)%XE,1)
 
         do i = 1,npoints
-            FE(i,1)   = structures(1)%fden(i,1)
-            FE(i,2)   = structures(1)%fden(i,2)
+            FE(i,1)   = structures(nparticles)%fden(i,1)
+            FE(i,2)   = structures(nparticles)%fden(i,2)
             FE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
         end do
     end subroutine getforces
 
     subroutine getpositions(XE, nn) bind(C)
-        ! It takes in the position arrays defined in openfoam and fills
-        ! it with the particle's position values
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
         integer(c_int), intent(in)      :: nn
         real(c_double), intent(inout)   :: XE(nn,3)
 
-        integer(int32) :: i, nparticles, npoints
+        integer(int32) :: nparticles, npoints, i
 
-        ! print *, "Size of XC: ", size(XC)
         nparticles = 1
 
         npoints = size(structures(1)%XE,1)
 
         do i = 1,npoints
-            XE(i,1)   = structures(1)%XE(i,1)
-            XE(i,2)   = structures(1)%XE(i,2)
+            XE(i,1)   = structures(nparticles)%XE(i,1)
+            XE(i,2)   = structures(nparticles)%XE(i,2)
             XE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
         end do
     end subroutine getpositions
@@ -134,7 +125,6 @@ module soft_particles
             structures(1)%fden(i,2) = FYC(i)
         end do
 
-        ! print *, particles(1)%fden(:,1)
     end subroutine applyboundaryforces
 
    
@@ -149,8 +139,6 @@ module soft_particles
 
 
     subroutine updatepositions(dt) bind(C)
-        ! Take in the empty position arrays from openfoam
-        ! Fill it up with values
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
@@ -176,10 +164,5 @@ module soft_particles
         end do
 
     end subroutine updatepositions
-
-    ! Create 3 subroutines
-    ! 1. Creates the ellipse and it's coordinates and connectivity. Basically reads it form the python generated file.
-    ! 2. Calls the force calculation and fills up the force vector.
-    ! 3. Takes the velocity vector from the C program and uses it to update the particle's nodes positions.
 
 end module soft_particles

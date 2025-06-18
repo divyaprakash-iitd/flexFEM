@@ -1,9 +1,11 @@
 program main
-    use soft_particles
+    use soft_particles, only: generatefestructures, getpositions, &
+        applyboundaryforces, calculateforces, getforces, updatepositions 
     use iso_c_binding, only: c_int, c_double, c_loc
-    use matrix_writer
+    use matrix_writer, only: write_to_file
     implicit none
 
+    real(8), parameter :: PI = 3.141592653589793
     integer(C_INT) :: n, niter, iter
     logical, allocatable :: isOnPerimeter(:), isBetweenAngleRange(:), & 
                                 isOnLeft(:), isOnRight(:), isLeftPatch(:), isRightPatch(:)
@@ -17,6 +19,7 @@ program main
  
     ! Measure time
     real :: t_start, t_end, t_elapsed
+    character(len=20)           :: filename
 
     ! Particle geometrical parameters
     ! To-DO: Add functionality to read them using namelist
