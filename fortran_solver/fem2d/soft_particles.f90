@@ -34,43 +34,41 @@ module soft_particles
 
     contains 
 
-    ! subroutine generateellipse(noelpts)
     subroutine generateellipse(noelpts) bind(C)
-    use iso_c_binding, only: C_INT, C_CHAR
-    implicit none
+        use iso_c_binding, only: C_INT, C_CHAR
+        implicit none
 
-    integer(C_INT), intent(inout) :: noelpts
-    ! This subroutine generates the ellipse and its connectivity
-    integer(c_size_t), allocatable :: nodeTagsAll(:)
-    integer(c_size_t), allocatable :: connectivity(:)
-    real(c_double), allocatable :: coordAll(:)
-    integer :: ierr, i
+        integer(C_INT), intent(inout) :: noelpts
+        ! This subroutine generates the ellipse and its connectivity
+        integer(c_size_t), allocatable :: nodeTagsAll(:)
+        integer(c_size_t), allocatable :: connectivity(:)
+        real(c_double), allocatable :: coordAll(:)
+        integer :: ierr
 
 
-    call get_nodes_connectivity("donut2d_mesh.msh", connectivity, nodeTagsAll, coordAll, ierr)
-    pp = transpose(reshape(coordAll,[3,size(coordAll)/3]))
-    ! mp = transpose(reshape(int(connectivity, kind=4),[3,size(connectivity)/3]))
-    mp = transpose(reshape(connectivity,[3,size(connectivity)/3]))
-    FN = pp*0.0d0
-    UN = pp*0.0d0
+        call get_nodes_connectivity("donut2d_mesh.msh", connectivity, nodeTagsAll, coordAll, ierr)
+        pp = transpose(reshape(coordAll,[3,size(coordAll)/3]))
+        ! mp = transpose(reshape(int(connectivity, kind=4),[3,size(connectivity)/3]))
+        mp = transpose(reshape(connectivity,[3,size(connectivity)/3]))
+        FN = pp*0.0d0
+        UN = pp*0.0d0
 
-    ! Read input data from file
-    open(1004,file="input_params.dat",form='formatted')
-    READ(unit=1004,nml=particleprops,iostat=err)
-    close(1004)
+        ! Read input data from file
+        open(1004,file="input_params.dat",form='formatted')
+        READ(unit=1004,nml=particleprops,iostat=err)
+        close(1004)
     
-    !! Read the connectivity and coordinates by calling subroutines from the mesh_module
-    nparticle   = 1
-    allocate(particles(nparticle))
-    particles(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
-    ! print *, "Particle created with Kp: ", Kp, " and Bp: ", Bp
+        !! Read the connectivity and coordinates by calling subroutines from the mesh_module
+        nparticle   = 1
+        allocate(particles(nparticle))
+        particles(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
+        ! print *, "Particle created with Kp: ", Kp, " and Bp: ", Bp
 
 
-    noelpts = size(particles(1)%XE,1)
-    itnum = 1
+        noelpts = size(particles(1)%XE,1)
+        itnum = 1
 
-    ! call write_field(particles(1)%XE,'P',itnum)
-    call write_to_file('connectivity.txt', reshape(connectivity,[3,size(connectivity)/3]))
+        call write_to_file('connectivity.txt', reshape(connectivity,[3,size(connectivity)/3]))
 
 
     end subroutine generateellipse
@@ -94,9 +92,8 @@ module soft_particles
         do i = 1,npoints
             XC(i)   = particles(1)%XE(i,1)
             YC(i)   = particles(1)%XE(i,2)
-            ZC(i)   = 0.005d0 ! Fill it with the value of the z-component of the mesh cell center
+            ZC(i)   = 0.0d0 ! 2D problem, so Z is always 0
         end do
-        ! print *, XC
     end subroutine getpositions
     
     subroutine applyboundaryforces(FXC,FYC,nn) bind(C)
@@ -104,7 +101,7 @@ module soft_particles
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
-        integer(c_int), intent(in)      :: nn
+        integer(c_int), intent(in)   :: nn
         real(c_double), intent(in)   :: FXC(nn),FYC(nn)
 
         integer(int32) :: i, npoints
