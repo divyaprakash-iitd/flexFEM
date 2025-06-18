@@ -1,4 +1,4 @@
-module fem_interface
+module fem2d_interface
     use fem2d
     use mesh_module, only: get_nodes_connectivity, get_physical_group_nodes
     use matrix_writer, only: write_to_file
@@ -73,14 +73,14 @@ module fem_interface
         integer(c_int), intent(in)      :: nn
         real(c_double), intent(inout)   :: FE(nn,3)
 
-        integer(int32) :: nparticles, npoints, i
+        integer(int32) :: nstructures, npoints, i
 
-        nparticles = 1
+        nstructures = 1
         npoints = size(structures(1)%XE,1)
 
         do i = 1,npoints
-            FE(i,1)   = structures(nparticles)%fden(i,1)
-            FE(i,2)   = structures(nparticles)%fden(i,2)
+            FE(i,1)   = structures(nstructures)%fden(i,1)
+            FE(i,2)   = structures(nstructures)%fden(i,2)
             FE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
         end do
     end subroutine getforces
@@ -159,4 +159,4 @@ module fem_interface
 
     end subroutine updatepositions
 
-end module fem_interface
+end module fem2d_interface

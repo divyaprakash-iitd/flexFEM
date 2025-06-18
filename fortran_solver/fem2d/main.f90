@@ -1,5 +1,5 @@
 program main
-    use fem_interface, only: generatefestructures, getpositions, &
+    use fem2d_interface, only: generatefestructures, getpositions, &
         calculateforces, getforces, updatepositions 
     use iso_c_binding, only: c_int, c_double, c_loc
     use matrix_writer, only: write_to_file
