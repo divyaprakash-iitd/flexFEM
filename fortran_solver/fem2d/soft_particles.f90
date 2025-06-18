@@ -11,10 +11,9 @@ module soft_particles
     
     ! Particle information
     real(8)         :: Kp, Bp
-    integer(int32)  :: itnum ! iteration number
 
     ! FEM data
-    type(festruct), allocatable :: particles(:)
+    type(festruct), allocatable :: structures(:)
     integer(int32)              :: ntri, npp, nparticle
     real(real64), allocatable   :: pb(:,:,:)
     integer,      allocatable   :: mp(:,:)
@@ -34,12 +33,11 @@ module soft_particles
 
     contains 
 
-    subroutine generateellipse(noelpts) bind(C)
+    subroutine generatefestructures(nnodes) bind(C)
         use iso_c_binding, only: C_INT, C_CHAR
         implicit none
 
-        integer(C_INT), intent(inout) :: noelpts
-        ! This subroutine generates the ellipse and its connectivity
+        integer(C_INT), intent(inout) :: nnodes
         integer(c_size_t), allocatable :: nodeTagsAll(:)
         integer(c_size_t), allocatable :: connectivity(:)
         real(c_double), allocatable :: coordAll(:)
@@ -48,8 +46,8 @@ module soft_particles
 
         call get_nodes_connectivity("donut2d_mesh.msh", connectivity, nodeTagsAll, coordAll, ierr)
         pp = transpose(reshape(coordAll,[3,size(coordAll)/3]))
-        ! mp = transpose(reshape(int(connectivity, kind=4),[3,size(connectivity)/3]))
         mp = transpose(reshape(connectivity,[3,size(connectivity)/3]))
+        
         FN = pp*0.0d0
         UN = pp*0.0d0
 
@@ -58,20 +56,17 @@ module soft_particles
         READ(unit=1004,nml=particleprops,iostat=err)
         close(1004)
     
-        !! Read the connectivity and coordinates by calling subroutines from the mesh_module
+        ! Construct the structure
         nparticle   = 1
-        allocate(particles(nparticle))
-        particles(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
-        ! print *, "Particle created with Kp: ", Kp, " and Bp: ", Bp
+        allocate(structures(nparticle))
+        structures(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
 
-
-        noelpts = size(particles(1)%XE,1)
-        itnum = 1
+        nnodes = size(structures(1)%XE,1)
 
         call write_to_file('connectivity.txt', reshape(connectivity,[3,size(connectivity)/3]))
 
 
-    end subroutine generateellipse
+    end subroutine generatefestructures
 
     subroutine getforces(FE,nn) bind(C)
         ! It takes in the position arrays defined in openfoam and fills
@@ -86,11 +81,11 @@ module soft_particles
 
         nparticles = 1
 
-        npoints = size(particles(1)%XE,1)
+        npoints = size(structures(1)%XE,1)
 
         do i = 1,npoints
-            FE(i,1)   = particles(1)%fden(i,1)
-            FE(i,2)   = particles(1)%fden(i,2)
+            FE(i,1)   = structures(1)%fden(i,1)
+            FE(i,2)   = structures(1)%fden(i,2)
             FE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
         end do
     end subroutine getforces
@@ -109,11 +104,11 @@ module soft_particles
         ! print *, "Size of XC: ", size(XC)
         nparticles = 1
 
-        npoints = size(particles(1)%XE,1)
+        npoints = size(structures(1)%XE,1)
 
         do i = 1,npoints
-            XE(i,1)   = particles(1)%XE(i,1)
-            XE(i,2)   = particles(1)%XE(i,2)
+            XE(i,1)   = structures(1)%XE(i,1)
+            XE(i,2)   = structures(1)%XE(i,2)
             XE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
         end do
     end subroutine getpositions
@@ -128,15 +123,15 @@ module soft_particles
 
         integer(int32) :: i, npoints
 
-        npoints = size(particles(1)%XE,1)
+        npoints = size(structures(1)%XE,1)
 
         ! Initialize the force arrays
-        particles(1)%fden = 0.0d0
+        structures(1)%fden = 0.0d0
 
         ! Apply boundary forces
         do i = 1, nn
-            particles(1)%fden(i,1) = FXC(i)
-            particles(1)%fden(i,2) = FYC(i)
+            structures(1)%fden(i,1) = FXC(i)
+            structures(1)%fden(i,2) = FYC(i)
         end do
 
         ! print *, particles(1)%fden(:,1)
@@ -148,7 +143,7 @@ module soft_particles
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
-        call particles(1)%calculate_forces()
+        call structures(1)%calculate_forces()
 
     end subroutine calculateforces
 
@@ -168,18 +163,16 @@ module soft_particles
 
         nparticles = 1
 
-        npoints = size(particles(1)%XE,1)
+        npoints = size(structures(1)%XE,1)
 
         do i = 1,npoints
-            particles(1)%U(i,1) = particles(1)%fden(i,1) / mu
-            particles(1)%U(i,2) = particles(1)%fden(i,2) / mu
+            structures(1)%U(i,1) = structures(1)%fden(i,1) / mu
+            structures(1)%U(i,2) = structures(1)%fden(i,2) / mu
         end do
 
-        itnum = itnum + 1
-        
 
         do i = 1,nparticles
-            call particles(i)%update_position(dt)
+            call structures(i)%update_position(dt)
         end do
 
     end subroutine updatepositions
