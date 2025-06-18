@@ -10,8 +10,6 @@ module soft_particles
     real(8), parameter :: PI = 3.141592653589793
     
     ! Particle information
-    integer         :: nvp ! Number of vertices in the particle
-    real(real64)    :: aa, bb ! Major and minor axis
     real(8)         :: Kp, Bp
     integer(int32)  :: itnum ! iteration number
 
@@ -30,7 +28,7 @@ module soft_particles
     character(len=20)           :: filename
 
     ! Namelists for input
-    namelist /particleprops/ Kp, nvp, Bp, aa, bb
+    namelist /particleprops/ Kp, Bp
 
     !---------------------- Begin Calculations ------------------------------------!
 
@@ -67,14 +65,6 @@ module soft_particles
     particles(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
     ! print *, "Particle created with Kp: ", Kp, " and Bp: ", Bp
 
-    ! Open the file for writing
-    OPEN(UNIT=10, FILE="MP.txt", STATUS='replace', ACTION='write')
-    ! Loop through the matrix and write its elements to the file
-    DO i = 1, ntri
-        WRITE(10, '(3I5)') (particles(1)%M(i, j), j = 1, 3)
-    ENDDO
-    ! Close the file
-    CLOSE(10)
 
     noelpts = size(particles(1)%XE,1)
     itnum = 1

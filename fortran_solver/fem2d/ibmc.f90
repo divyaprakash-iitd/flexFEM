@@ -7,7 +7,7 @@ program ibmc
     integer(C_INT) :: n, niter, iter
     logical, allocatable :: isOnPerimeter(:), isBetweenAngleRange(:), & 
                                 isOnLeft(:), isOnRight(:), isLeftPatch(:), isRightPatch(:)
-    real(c_double) :: a, b, eps, dt, radius
+    real(c_double) :: eps, dt, radius
     real(c_double), allocatable :: XP(:), YP(:), X1(:), Y1(:)
     real(c_double), allocatable :: FXC(:),FYC(:), Fxleft(:), Fxright(:), fxboundary(:), fyboundary(:)
     real(c_double), allocatable :: F1XC(:),F1YC(:), F1ZC(:)
@@ -18,11 +18,8 @@ program ibmc
     ! Measure time
     real :: t_start, t_end, t_elapsed
 
-    
-    ! Particle (Ellipse) parameters
+    ! Particle geometrical parameters
     ! To-DO: Add functionality to read them using namelist
-    a     = 2.5e-4
-    b     = 1.25e-4
     eps    = 1.0e-4
     radius = 1.0d0
 
@@ -87,10 +84,6 @@ program ibmc
     
         call calculateforces()
         call updatepositions(dt)
-        !  ! Print progress every 1000 iterations
-        ! if (mod(iter, niter/100) == 0 .or. iter == niter) then
-        !     write(*,'(A,I6,A,I6,A,F6.2,A)') "Progress: Iteration ", iter, " /", niter, " (", 100.0*iter/niter, "%)"
-        ! end if
 
         ! Print progress bar every 500 iterations
         if (mod(iter, 1000) == 0 .or. iter == niter) then

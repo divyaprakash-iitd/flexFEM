@@ -3,6 +3,8 @@ import pyvista as pv
 import os
 import glob
 
+images_dir = 'images/'
+
 def load_data(timestep):
     coords = np.loadtxt(f"coords_t{timestep}.txt")  # shape (N, 2) or (N, 3)
     
@@ -42,7 +44,7 @@ for i, (pfile, ffile) in enumerate(zip(sorted_files_p, sorted_files_f)):
         #'displacement': disp      # Optional additional fields
     }
     mesh = create_vtk_mesh(coords, conn.T, point_data)
-    mesh.save(f"mesh_{i:04d}.vtu")
+    mesh.save(f"{images_dir}mesh_{i:04d}.vtu")
 
 #plotter = pv.Plotter()
 #for i in range(len(files)):
