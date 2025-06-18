@@ -1,4 +1,4 @@
-# Makefile for IBMC project
+# Makefile for flexFEM project
 # Compiler and flags
 FC = gfortran
 FFLAGS = -O2
@@ -10,10 +10,10 @@ MESH_DIR = ../mesh_handling_fortran
 GMSH_INCLUDE = /usr/local/include
 
 # Target executable
-TARGET = ibmc
+TARGET = main
 
 # Object files
-OBJS = ibmc.o \
+OBJS = main.o \
        fem2d.o \
        soft_particles.o \
        gmsh.o \
@@ -51,8 +51,8 @@ mesh_module.o:
 # soft_particles.f90 uses fem2d, mesh_module, and matrix_writer
 soft_particles.o: fem2d.o mesh_module.o matrix_writer.o
 
-# ibmc.f90 uses soft_particles module
-ibmc.o: soft_particles.o
+# main.f90 uses soft_particles module
+main.o: soft_particles.o
 
 # Clean up generated files
 clean:
