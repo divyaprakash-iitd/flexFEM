@@ -14,7 +14,7 @@ TARGET = main
 # Object files
 OBJS = main.o \
        fem2d.o \
-       soft_particles.o \
+       fem_interface.o \
        gmsh.o \
        matrix_writer.o \
        mesh_module.o
@@ -38,8 +38,8 @@ gmsh.o: $(GMSH_INCLUDE)/gmsh.f90
 matrix_writer.o: gmsh.o
 mesh_module.o: gmsh.o matrix_writer.o
 fem2d.o: mesh_module.o
-soft_particles.o: fem2d.o mesh_module.o matrix_writer.o
-main.o: soft_particles.o
+fem_interface.o: fem2d.o mesh_module.o matrix_writer.o
+main.o: fem_interface.o
 
 # Clean up generated files
 clean:
