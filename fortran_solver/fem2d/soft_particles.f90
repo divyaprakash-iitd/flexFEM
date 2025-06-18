@@ -11,6 +11,7 @@ module soft_particles
     
     ! Particle information
     real(8)         :: Kp, Bp
+    character(len=100) :: meshfile
 
     ! FEM data
     type(festruct), allocatable :: structures(:)
@@ -25,7 +26,7 @@ module soft_particles
     integer(int32)              :: femdata(2)
 
     ! Namelists for input
-    namelist /particleprops/ Kp, Bp
+    namelist /structureprops/ meshfile, Kp, Bp
 
     !---------------------- Begin Calculations ------------------------------------!
 
@@ -41,18 +42,18 @@ module soft_particles
         real(c_double), allocatable :: coordAll(:)
         integer :: ierr
 
+        ! Read input data from file
+        open(1004,file="input_params.dat",form='formatted')
+        READ(unit=1004,nml=structureprops,iostat=ierr)
+        close(1004)
 
-        call get_nodes_connectivity("donut2d_mesh.msh", connectivity, nodeTagsAll, coordAll, ierr)
+        call get_nodes_connectivity(trim(meshfile), connectivity, nodeTagsAll, coordAll, ierr)
         pp = transpose(reshape(coordAll,[3,size(coordAll)/3]))
         mp = transpose(reshape(connectivity,[3,size(connectivity)/3]))
         
         FN = pp*0.0d0
         UN = pp*0.0d0
 
-        ! Read input data from file
-        open(1004,file="input_params.dat",form='formatted')
-        READ(unit=1004,nml=particleprops,iostat=ierr)
-        close(1004)
     
         ! Construct the structure
         nparticle   = 1
