@@ -8,7 +8,7 @@ This repository provides a toolkit for performing **Finite Element Method (FEM)*
 
 The code is demonstrated on a soft, annular (donut-shaped) structure deforming under applied forces, but is general enough to be adapted for arbitrary 2D triangulated domains.
 
-![Animation](matlab/tutorials/donut2d/donut_animation.webp)
+![Animation](matlab/tutorials/donut2d/images/donut_animation.webp)
 ---
 
 ## Motivation
