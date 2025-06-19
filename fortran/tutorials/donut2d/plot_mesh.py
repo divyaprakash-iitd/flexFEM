@@ -5,6 +5,10 @@ import glob
 
 images_dir = 'images/'
 
+# Create images directory if it doesn't exist
+if not os.path.exists(images_dir):
+    os.makedirs(images_dir)
+
 def load_data(timestep):
     coords = np.loadtxt(f"coords_t{timestep}.txt")  # shape (N, 2) or (N, 3)
     
