@@ -1,5 +1,5 @@
 
-# flexFEM: Finite Element Simulation Toolkit (2D)
+# flexFEM: Finite Element Simulation Toolkit
 
 This repository provides a toolkit for performing **Finite Element Method (FEM)** simulations on 2D geometries, with two complementary implementations:
 
