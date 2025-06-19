@@ -75,7 +75,7 @@ venv.bak/
 .DS_Store
 Thumbs.db
 
-# === Text files and images/videos ===
+# === Text files, images and videos ===
 *.txt
 *.png
 *.jpg
