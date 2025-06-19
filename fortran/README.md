@@ -28,7 +28,7 @@ The `environment.yml` file is provided to set up a Conda environment with PyVist
    - Create and activate the environment using the provided `environment.yml`:
      ```bash
      conda env create -f environment.yml
-     conda activate fem2d_env
+     conda activate mesh-env
      ```
 
 3. **Compile the Fortran Code**:

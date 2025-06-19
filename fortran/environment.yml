@@ -1,0 +1,8 @@
+name: mesh-env
+channels:
+  - conda-forge
+dependencies:
+  - pyvista
+  - gmsh
+  - python-gmsh
+
