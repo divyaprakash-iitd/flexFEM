@@ -10,7 +10,7 @@ to simulate any type of 2D geometry.
 
 To run this simulation, ensure you have the following installed:
 
-- **GMSH library**: Compiled from source. Instructions are available [here](https://gitlab.onelab.info/gmsh/gmsh/-/blob/master/tutorials/fortran/README.txt).
+- **GMSH library**: Compiled from source. Instructions are available [here](https://gitlab.onelab.info/gmsh/gmsh/-/wikis/Gmsh-compilation).
 - **Fortran compiler**: e.g., `gfortran`.
 - **PyVista**: For generating VTK files for visualization (included in the provided `environment.yml`).
 - **ParaView**: For viewing the generated VTK files.
