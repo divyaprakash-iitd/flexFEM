@@ -1,4 +1,4 @@
-# Implementation in MATLAB
+# Implementation in MATLAB (2D)
 
 ## Overview
 
