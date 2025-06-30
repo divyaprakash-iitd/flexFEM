@@ -8,7 +8,7 @@ This repository provides a toolkit for performing **Finite Element Method (FEM)*
 
 The code is demonstrated on a soft, annular (donut-shaped) structure deforming under applied forces, but is general enough to be adapted for arbitrary 2D/3D triangulated domains.
 
-![Animation](/home/divyaprakash/my_solvers/flexFEM/matlab/3d/tutorial/ellipsoidal_shell/ellipsoidal_shell.gif)
+![Animation](matlab/3d/tutorial/ellipsoidal_shell/ellipsoidal_shell.gif)
 ---
 
 ## Motivation
