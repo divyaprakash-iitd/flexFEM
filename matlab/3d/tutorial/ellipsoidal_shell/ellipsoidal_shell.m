@@ -1,6 +1,11 @@
 clear; clc; close all;
 
-% Description: Solves a structure meshed with tetrahedrals
+
+%% Add path
+libpath = '../../'; % Replace with the path where you have downloaded the source code
+addpath(libpath);
+
+%% Description: Solves a demo problem using FEM (3D)
 
 %% Define the elastic constants
 K   = 100000;
