@@ -14,7 +14,7 @@ E   = co*(2*co+3*K)/(co+K);
 nu  = K/(2*(co+K));
 
 % Import mesh generated in gmsh
-donut3d_mesh;
+ellipsoidal_shell_mesh;
 nodes = msh.POS'; 
 M = msh.TETS; 
 % (assuming you haven't checked 'export all M', else it will be a column of zeros.
@@ -53,7 +53,7 @@ dt      = 0.001;
 mu      = 1000;
 
 % Store simulation images in a directory
-folders = {'images', 'vtk'};  % Use a cell array of strings
+folders = {'image', 'vtk'};  % Use a cell array of strings
 
 % Check if each folder exists, if not, create it
 for i = 1:length(folders)
@@ -111,7 +111,7 @@ while iter <= niter
     end
     
     if (mod(iter,50) == 0)
-        fname = sprintf("images/img_%05d.png",fId);
+        fname = sprintf("image/img_%05d.png",fId);
         
         XX = [x(:) y(:) z(:)];
         tetramesh(M,XX,'FaceColor','b')
