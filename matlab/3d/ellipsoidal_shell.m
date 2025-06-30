@@ -1,20 +1,13 @@
 clear; clc; close all;
 
-% To-Do: 
-% 1. Move the node selection to a separate function within this same script
-% 2. Move around the camera with every iteration
-% 3. Maybe use the matlab file exchange script to obtain vtk files for
-% visualization in paraview (Definetly use this)
-
-
-% Description: Solves a structure meshed with tetrahedral M
+% Description: Solves a structure meshed with tetrahedrals
 
 %% Define the elastic constants
 K   = 100000;
 co  = 50000;
 E   = co*(2*co+3*K)/(co+K);
 nu  = K/(2*(co+K));
-% return
+
 % Import mesh generated in gmsh
 donut3d_mesh;
 nodes = msh.POS'; 
@@ -30,7 +23,6 @@ nnode = size(nodes,2);
 
 % From the gmsh script
 ocTag = 1; % Tag-1: Outer circumference (oc)
-
 ocLinesId = msh.TRIANGLES(:,end) == ocTag;
 ocPointsId = unique(msh.TRIANGLES(ocLinesId,1:3));
 nNodes = msh.nbNod;
@@ -38,20 +30,9 @@ nNodes = msh.nbNod;
 % Create masks
 ocMask = false(nNodes,1);
 ocMask(ocPointsId) = true;
-
 surface_idx = find(ocMask);
-
 theta = deg2rad(45);              % cone half-angle
-
 % Direction vectors
-right_dir = [1; 0; 0];
-left_dir  = [-1; 0; 0];
-
-right_patch = get_patches(nodes,surface_idx,theta,right_dir);
-left_patch = get_patches(nodes,surface_idx,theta,left_dir);
-
-% Create patches for applying torque
-% Get the top and bottom patches first
 top_dir = [0; 0; 1];
 bottom_dir  = [0; 0; -1];
 
@@ -65,6 +46,16 @@ bottom_patch = get_patches(nodes,surface_idx,theta,bottom_dir);
 niter   = 15000;
 dt      = 0.001;
 mu      = 1000;
+
+% Store simulation images in a directory
+folders = {'images', 'vtk'};  % Use a cell array of strings
+
+% Check if each folder exists, if not, create it
+for i = 1:length(folders)
+    if ~exist(folders{i}, 'dir')
+        mkdir(folders{i});
+    end
+end
 
 %% Time Loop
 iter    = 1;
@@ -82,11 +73,9 @@ while iter <= niter
     FN = zeros(3,nnode);
     if iter < niter/2
 
-        % Apply compression forces
-%         FN(1,left_patch) = fmag;
-%         FN(1,right_patch) = -fmag;
-        FN(1,top_patch) = fmag;
-        FN(1,bottom_patch) = -fmag;
+        % Apply stretching forces
+        FN(3,top_patch) = fmag;
+        FN(3,bottom_patch) = -fmag;
 
         % Apply twisting forces
         % Get forces 
@@ -128,20 +117,25 @@ while iter <= niter
         zlim([-lim,lim])
         daspect([1,1,1])
         title(sprintf("Iteration = %d",iter))
-        view(0, 0)
-%         view(3)
+        %view(0, 0)
         pause(0.1)
 
         saveas(gcf,fname)
-        filename = sprintf('images/vtk/img_%05d.vtk',fId);
+       
+        % Save vtk files for visualization using paraview 
+        filename = sprintf('vtk/img_%05d.vtk',fId);
         data_struct.type = 'vector';
         data_struct.name = 'Force';
         data_struct.data = FN';
         data_title = 'Force';
         vtx_coord = [x(:), y(:), z(:)];
         flipped = false;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Shawn Walker (2025). write BINARY VTK file for tetrahedral grid with scalar and vector data (https://www.mathworks.com/matlabcentral/fileexchange/58002-write-binary-vtk-file-for-tetrahedral-grid-with-scalar-and-vector-data), MATLAB Central File Exchange. Retrieved June 30, 2025. 
         stat = vtk_write_tetrahedral_grid_and_data(filename,data_title,vtx_coord,M,data_struct,flipped);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         fId = fId + 1;
+
     end
 
     iter = iter + 1;
@@ -149,7 +143,6 @@ end
 
 function f_theta = azimuthal_force_direction(x,y,z,F0)
 % azimuthal_force_direction_array - Computes azimuthal force vectors for an array of positions.
-    
     x = x(:); y = y(:); z = z(:);
     % Compute radius in xy-plane
     r = sqrt(x.^2 + y.^2);
