@@ -136,6 +136,8 @@ while iter <= niter
         vtx_coord = [x(:), y(:), z(:)];
         flipped = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The following files needs to be downloaded and added to MATLAB's path or kept in the same directory as this code.
+% If VTK files are not needed then comment out the following line.
         % Shawn Walker (2025). write BINARY VTK file for tetrahedral grid with scalar and vector data (https://www.mathworks.com/matlabcentral/fileexchange/58002-write-binary-vtk-file-for-tetrahedral-grid-with-scalar-and-vector-data), MATLAB Central File Exchange. Retrieved June 30, 2025. 
         stat = vtk_write_tetrahedral_grid_and_data(filename,data_title,vtx_coord,M,data_struct,flipped);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
