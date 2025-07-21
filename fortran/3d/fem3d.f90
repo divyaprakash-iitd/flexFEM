@@ -19,8 +19,6 @@ module fem3d
         contains
             procedure :: calculate_forces
             procedure :: update_position
-            procedure :: set_force
-            procedure :: set_velocity
             procedure :: shapecoefficients
 
     end type festruct
@@ -100,24 +98,6 @@ module fem3d
 
     end subroutine shapecoefficients
 
-    elemental subroutine set_force(self,fden)
-        implicit none
-        class(festruct), intent(inout) :: self
-        real(real64), intent(in) :: fden
-        
-        integer(int32) :: ipoints
-        ! ! Fix the bottom nodes (Make force zero)
-        ! forall (ipoints = 1:size(self%XE,1), self%boundary(ipoints,2).eqv..True.) &
-        !     self%fden(ipoints,:) = fden
-    end subroutine set_force
-    
-    elemental subroutine set_velocity(self,UN)
-        implicit none
-        class(festruct), intent(inout) :: self
-        real(real64), intent(in) :: UN
-        self%U = UN 
-    end subroutine set_velocity
-
     elemental impure subroutine calculate_forces(self)
         implicit none
         class(festruct), intent(inout) :: self
@@ -178,34 +158,6 @@ module fem3d
             
 
     end subroutine update_position
-
-    subroutine read_data(file_path,M)
-          implicit none
-          character(len=*), intent(in) :: file_path
-          real*8, intent(inout), allocatable :: M(:,:)
-          integer :: i, j, dims(2)
-
-          ! Open the binary file for reading
-          open(unit=10, file=file_path, access='stream', form='unformatted', status='old')
-
-          ! Read the size of the matrix
-          read(10) dims
-
-          allocate(M(dims(1),dims(2)))
-          ! Read the data
-            do j = 1, dims(2)
-                do i = 1, dims(1)
-                    read(10) M(i, j)
-                end do
-            end do
-
-          ! Close the file
-          close(10)
-
-          ! Now you have the data in the 'data' array
-          ! Do whatever processing you need here
-          print*, dims(1), dims(2)
-    end subroutine read_data
 
     ! Helper functions
     ! Jacobian derivative term
@@ -359,86 +311,4 @@ module fem3d
 
     end function cofactor
 
-    subroutine print_matrix(matrix)
-        implicit none
-        real(8), dimension(:,:) :: matrix
-        integer :: nrows, ncols
-        integer :: i, j
-    
-        ! Determine the number of rows and columns
-        nrows = size(matrix, 1)
-        ncols = size(matrix, 2)
-    
-        ! Print the matrix
-        do i = 1, nrows
-            print *, (matrix(i, j), j = 1, ncols)
-        end do
-    
-    end subroutine print_matrix
-
-
-    ! function determinant(A) result(D)
-    !     implicit none
-    !     real(real64), intent(in) :: A(:,:)
-    !     real(real64) :: D
-
-    !     integer(int32) :: n   !Size of the matrix
-    !     integer, allocatable :: ipiv(:)
-    !     integer::  info
-    !     real(real64), allocatable :: work(:)
-    !     integer :: i, j
-
-    !     ! External LAPACK routine for LU factorization
-    !     external dgetrf
-
-    !     ! Allocate
-    !     n = size(A,1)
-    !     allocate(ipiv(n),work(n))
-
-    !     ! Compute the LU factorization of the matrix A
-    !     call dgetrf(n, n, A, n, ipiv, info)
-
-    !     ! Check for successful factorization
-    !     if (info /= 0) then
-    !         print *, "Error: Matrix is singular or other error occurred"
-    !         stop
-    !     endif
-
-    !     ! Compute the determinant using the LU factors
-    !     D = 1.0
-    !     do i = 1, n
-    !         D = D * A(i, i)
-    !     end do
-
-    !     ! Apply the permutation from the factorization
-    !     do i = 1, n
-    !         if (ipiv(i) /= i) then
-    !             D = -D
-    !         endif
-    !     end do
-
-    !     ! Output the determinant
-    !     ! print *, "Determinant:", determinant
-    ! end function determinant
-
-    subroutine write_field(F,fieldname,timestep)
-        real(real64), intent(in) :: F(:,:)
-        character(len=1), intent(in) :: fieldname
-        integer(int32), intent(in) :: timestep
-
-        integer(int32) :: fileunit = 8
-        character(len=:), allocatable :: filename
-        character(len=8) :: itnumber
-        integer(int32) :: i,j
-
-        write(itnumber,"(I8.8)") timestep
-        filename = fieldname // '_' // itnumber // '.txt'
-
-        open(unit=fileunit, file=filename, ACTION="write", STATUS="unknown", position="append")
-        do j = 1,size(F,2)
-            write(fileunit, '(*(1p1e20.11))')( F(i,j) , i = 1,size(F,1))
-        end do
-        close(fileunit)
-    end subroutine write_field
- 
 end module fem3d

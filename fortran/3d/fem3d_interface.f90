@@ -1,5 +1,5 @@
 module fem2d_interface
-    use fem2d
+    use fem3d
     use mesh_module, only: get_nodes_connectivity, get_physical_group_nodes
     use matrix_writer, only: write_to_file
     use, intrinsic :: iso_c_binding
@@ -81,7 +81,7 @@ module fem2d_interface
         do i = 1,npoints
             FE(i,1)   = structures(nstructures)%fden(i,1)
             FE(i,2)   = structures(nstructures)%fden(i,2)
-            FE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
+            FE(i,3)   = structures(nstructures)%fden(i,3)
         end do
     end subroutine getforces
 
@@ -101,17 +101,17 @@ module fem2d_interface
         do i = 1,npoints
             XE(i,1)   = structures(nparticles)%XE(i,1)
             XE(i,2)   = structures(nparticles)%XE(i,2)
-            XE(i,3)   = 0.0d0 ! 2D problem, so Z is always 0
+            XE(i,3)   = structures(nparticles)%XE(i,3)
         end do
     end subroutine getpositions
     
-    subroutine calculateforces(FXC,FYC,nn) bind(C)
+    subroutine calculateforces(FXC,FYC,FZC,nn) bind(C)
         ! Applies the boundary forces to the particle
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
         integer(c_int), intent(in)   :: nn
-        real(c_double), intent(in), optional   :: FXC(nn),FYC(nn)
+        real(c_double), intent(in), optional   :: FXC(nn),FYC(nn),FZC(nn)
 
         integer(int32) :: i, npoints
 
@@ -121,10 +121,12 @@ module fem2d_interface
         structures(1)%fden = 0.0d0
 
         ! Apply boundary forces
-        if (present(FXC) .and. present(FYC)) then
+        ! To-Do: Combine the boundary forces into a single force array
+        if (present(FXC) .and. present(FYC) .and. present(FZC)) then
             do i = 1, nn
                 structures(1)%fden(i,1) = FXC(i)
                 structures(1)%fden(i,2) = FYC(i)
+                structures(1)%fden(i,3) = FZC(i)
             end do
         end if
 
@@ -150,6 +152,7 @@ module fem2d_interface
         do i = 1,npoints
             structures(1)%U(i,1) = structures(1)%fden(i,1) / mu
             structures(1)%U(i,2) = structures(1)%fden(i,2) / mu
+            structures(1)%U(i,3) = structures(1)%fden(i,3) / mu
         end do
 
 
