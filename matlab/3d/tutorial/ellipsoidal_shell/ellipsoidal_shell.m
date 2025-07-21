@@ -85,10 +85,10 @@ while iter <= niter
         % Apply twisting forces
         % Get forces 
         f_theta = azimuthal_force_direction(x(bottom_patch), y(bottom_patch), z(bottom_patch), fmag);
-        FN(:,bottom_patch) = f_theta';
+        FN(:,bottom_patch) = FN(:,bottom_patch) + f_theta';
         
         f_theta = azimuthal_force_direction(x(top_patch), y(top_patch), z(top_patch), fmag);
-        FN(:,top_patch) = -f_theta';
+        FN(:,top_patch) = FN(:,top_patch) - f_theta';
 
     end
     
