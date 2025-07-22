@@ -1,0 +1,7 @@
+!***********************************
+!*** Structure properties
+!***********************************
+&structureprops
+meshfile = 'ellipsoidal_shell_mesh.msh',
+Kp       = 10000,
+Bp       = 5000/

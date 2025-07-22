@@ -1,4 +1,4 @@
-module fem2d_interface
+module fem3d_interface
     use fem3d
     use mesh_module, only: get_nodes_connectivity, get_physical_group_nodes
     use matrix_writer, only: write_to_file
@@ -42,6 +42,7 @@ module fem2d_interface
         real(c_double), allocatable :: coordAll(:)
         integer :: ierr
 
+        ! To-Do: The mesh name should be passed as an argument
         ! Read input data from file
         open(1004,file="input_params.dat",form='formatted')
         READ(unit=1004,nml=structureprops,iostat=ierr)
@@ -49,7 +50,7 @@ module fem2d_interface
         
         call get_nodes_connectivity(trim(meshfile), connectivity, nodeTagsAll, coordAll, ierr)
         pp = transpose(reshape(coordAll,[3,size(coordAll)/3]))
-        mp = transpose(reshape(connectivity,[3,size(connectivity)/3]))
+        mp = transpose(reshape(connectivity,[4,size(connectivity)/4]))
         
         FN = pp*0.0d0
         UN = pp*0.0d0
@@ -58,6 +59,10 @@ module fem2d_interface
         ! Construct the structure
         nparticle   = 1
         allocate(structures(nparticle))
+        print *, "Number of elements: ", size(connectivity)/4
+        print *, "Number of particles: ", nparticle
+        print*, Bp
+        print *, Kp
         structures(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
 
         nnodes = size(structures(1)%XE,1)
@@ -162,4 +167,4 @@ module fem2d_interface
 
     end subroutine updatepositions
 
-end module fem2d_interface
+end module fem3d_interface
