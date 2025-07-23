@@ -23,11 +23,10 @@ program main
     eps = 1.0e-4
     a = 1.0d0
     b = 1.0d0
-    c = 1.30d0
+    c = 1.0d0
 
     ! Generate fe structures
     call generatefestructures(n)
-    print *, "Number of nodes: ", n
     allocate(fzmag(n), X(n), Y(n), Z(n), nangle(n), XN(n,3), FN(n,3))
 
     !------------------------- Boundary conditions -------------------------!
@@ -35,14 +34,17 @@ program main
     ! Then create masks based on a criteria that gets you the points 
     ! on a sector spanning -30 to 30 degrees and -150 to 150 degrees
     call getpositions(XN,n)
-    print *, "XN shape: ", size(XN,1), size(XN,2)
     X = XN(:,1)
     Y = XN(:,2)
     Z = XN(:,3)
+    iter = 0
+    write(filename, '(A,I8.8,A)') 'F_', iter, '.txt'
+    call write_to_file(filename, FN)
+    write(filename, '(A,I8.8,A)') 'P_', iter, '.txt'
+    call write_to_file(filename, XN)
     
     ! Mask based on circle condition
     isOnSurface = abs((X**2)/(a**2) + (Y**2)/(b**2) + (Z**2)/(c**2) - 1.0) < eps
-    print *, size(isOnSurface) 
     ! Mask based on z-location
     isOnTop = Z > 0.40d0
     isOnBottom = Z < -0.40d0
@@ -50,9 +52,8 @@ program main
     ! Final masks
     isTopPatch = isOnSurface .and. isOnTop
     isBottomPatch = isOnSurface .and. isOnBottom
-    
     !Apply boundary forces
-    fzmag = 5.0d0
+    fzmag = 200.0d0
     fztop = merge(1.0D0*fzmag,0.0d0,isTopPatch)
     fzbottom = merge(-1.0D0*fzmag,0.0d0,isBottomPatch)
     fzboundary = fztop + fzbottom
@@ -60,19 +61,19 @@ program main
     fyboundary = 0.0d0*fzboundary
     !-----------------------------------------------------------------------------!
 
-    niter = 50000
+    niter = 25000
     dt = 0.001
     call cpu_time(t_start)
     do iter = 1, niter
-        if (iter .gt. niter/2) then
+        if (iter .gt. niter/3) then
             fzboundary = 0.0d0
         end if
-        
+
         call calculateforces(fxboundary,fyboundary,fzboundary,n)
         call getforces(FN,n)
         call updatepositions(dt)
         call getpositions(XN,n)
-        
+        ! print *, maxval(XN(:,1)), maxval(XN(:,2)), maxval(XN(:,3))
         if (mod(iter,200).eq.0) then
             write(filename, '(A,I8.8,A)') 'F_', iter, '.txt'
             call write_to_file(filename, FN)

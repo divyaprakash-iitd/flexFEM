@@ -3,5 +3,5 @@
 !***********************************
 &structureprops
 meshfile = 'ellipsoidal_shell_mesh.msh',
-Kp       = 10000,
-Bp       = 5000/
+Kp       = 100000,
+Bp       = 50000/

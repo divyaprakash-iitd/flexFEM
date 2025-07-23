@@ -59,15 +59,11 @@ module fem3d_interface
         ! Construct the structure
         nparticle   = 1
         allocate(structures(nparticle))
-        print *, "Number of elements: ", size(connectivity)/4
-        print *, "Number of particles: ", nparticle
-        print*, Bp
-        print *, Kp
         structures(1) = festruct(MP,PP,FN,UN,bp,kp,1.0d0) ! kp = kval, co = bp , dl = 1.0d0
 
         nnodes = size(structures(1)%XE,1)
 
-        call write_to_file('connectivity.txt', reshape(connectivity,[3,size(connectivity)/3]))
+        call write_to_file('connectivity.txt', reshape(connectivity,[4,size(connectivity)/4]))
     
     end subroutine generatefestructures
 

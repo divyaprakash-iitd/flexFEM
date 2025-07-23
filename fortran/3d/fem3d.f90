@@ -129,7 +129,7 @@ module fem3d
         end do
 
         ! Adding forces for all nodes
-        self%fden = 0.0d0
+        ! self%fden = 0.0d0
         do k = 1, nelem
             do j = 1, 4
                nidx = self%M(k,j)
@@ -143,7 +143,7 @@ module fem3d
 
     end subroutine calculate_forces
     
-    elemental subroutine update_position(self, dt)
+    elemental impure subroutine update_position(self, dt)
         implicit none
         class(festruct), intent(inout) :: self
         real(real64), intent(in) :: dt
@@ -155,7 +155,8 @@ module fem3d
         do ipoint = 1,npoints
             self%XE(ipoint,:) = self%XE(ipoint,:) + dt * self%U(ipoint,:)
         end do
-            
+         
+        ! print *, maxval(self%XE(:,1)), maxval(self%XE(:,2)), maxval(self%XE(:,3))
 
     end subroutine update_position
 
