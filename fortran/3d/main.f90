@@ -43,7 +43,7 @@ program main
     write(filename, '(A,I8.8,A)') 'P_', iter, '.txt'
     call write_to_file(filename, XN)
     
-    ! Mask based on circle condition
+    ! Mask based on ellipsoid condition
     isOnSurface = abs((X**2)/(a**2) + (Y**2)/(b**2) + (Z**2)/(c**2) - 1.0) < eps
     ! Mask based on z-location
     isOnTop = Z > 0.40d0
