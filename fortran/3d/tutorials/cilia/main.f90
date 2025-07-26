@@ -27,7 +27,6 @@ program main
     radius = 0.1d0
     height = 2.0d0
 
-    print *, "JIIII"
     ! Generate fe structures
     call generatefestructures(n)
     allocate(fzmag(n), X(n), Y(n), Z(n), nangle(n), XN(n,3), FN(n,3))
@@ -52,9 +51,10 @@ program main
 
 
     !Apply boundary forces
-    fzmag = 1000.0d0
+    fzmag = 100.0d0
     fztop = merge(1.0D0*fzmag,0.0d0,isOnTop)
     fzbottom = merge(-1.0D0*fzmag,0.0d0,isOnBottom)
+    ! To-Do: Apply anchoring force on the bottom
     fzboundary = fztop + fzbottom
     fxboundary = 0.0d0*fzboundary
     fyboundary = 0.0d0*fzboundary
@@ -64,9 +64,23 @@ program main
     dt = 0.001
     call cpu_time(t_start)
     do iter = 1, niter
-        if (iter .gt. niter/3) then
+        if (iter .gt. niter/2) then
             fzboundary = 0.0d0
         end if
+        ! Calculate forces here which uses the difference between the original and the displaced
+        ! position of the nodes along the x, y and z direction.
+        ! PRIORITY: Refactor the code to use force vector instead of individual comments
+        ! where(isOnBottom) 
+        !   fxpenalty = - K*(xorg - x) 
+        ! end where
+        ! Apply the bending forces
+        ! where(isOnTop)
+        ! fbend = getparallelforces(x,y,z)
+        ! end where
+        ! Apply the twisting forces
+        ! where(isOnTop)
+        ! fbend = getorthogonalforces(x,y,z)
+        ! end where
         call calculateforces(fxboundary,fyboundary,fzboundary,n)
         call getforces(FN,n)
         call updatepositions(dt)
