@@ -10,7 +10,7 @@ program main
     logical, allocatable :: isOnSurface(:), isBetweenAngleRange(:), & 
                                 isOnTop(:), isOnBottom(:), isTopPatch(:), isBottomPatch(:)
     real(c_double) :: eps, dt, a, b, c, radius, height
-    real(c_double), allocatable :: XN(:,:), FN(:,:)
+    real(c_double), allocatable :: XN(:,:), FN(:,:), fboundary(:,:)
     real(c_double), allocatable :: fzmag(:), fztop(:), fzbottom(:), fxboundary(:), fyboundary(:), fzboundary(:)
     real(c_double), allocatable :: X(:),Y(:),Z(:), nangle(:)
     real(c_double) :: angle45
@@ -29,7 +29,7 @@ program main
 
     ! Generate fe structures
     call generatefestructures(n)
-    allocate(fzmag(n), X(n), Y(n), Z(n), nangle(n), XN(n,3), FN(n,3))
+    allocate(fzmag(n), X(n), Y(n), Z(n), nangle(n), XN(n,3), FN(n,3), fboundary(n,3))
 
     !------------------------- Boundary conditions -------------------------!
     ! Use get positions to get the cooridinates of the particles
@@ -55,9 +55,8 @@ program main
     fztop = merge(1.0D0*fzmag,0.0d0,isOnTop)
     fzbottom = merge(-1.0D0*fzmag,0.0d0,isOnBottom)
     ! To-Do: Apply anchoring force on the bottom
-    fzboundary = fztop + fzbottom
-    fxboundary = 0.0d0*fzboundary
-    fyboundary = 0.0d0*fzboundary
+    fboundary = 0.0d0
+    fboundary(:,3) = fztop + fzbottom
     !-----------------------------------------------------------------------------!
 
     niter = 25000
@@ -65,7 +64,7 @@ program main
     call cpu_time(t_start)
     do iter = 1, niter
         if (iter .gt. niter/2) then
-            fzboundary = 0.0d0
+            fboundary = 0.0d0
         end if
         ! Calculate forces here which uses the difference between the original and the displaced
         ! position of the nodes along the x, y and z direction.
@@ -82,7 +81,7 @@ program main
         ! fbend = getorthogonalforces(x,y,z)
         ! end where
         ! To-Do: Implement a C++ API
-        call calculateforces(fxboundary,fyboundary,fzboundary,n)
+        call calculateforces(fboundary,n)
         call getforces(FN,n)
         call updatepositions(dt)
         call getpositions(XN,n)
