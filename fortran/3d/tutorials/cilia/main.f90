@@ -9,10 +9,11 @@ program main
     integer(C_INT) :: n, niter, iter, i
     logical, allocatable :: isOnSurface(:), isBetweenAngleRange(:), & 
                                 isOnTop(:), isOnBottom(:), isTopPatch(:), isBottomPatch(:)
-    real(c_double) :: eps, dt, a, b, c, radius, height
-    real(c_double), allocatable :: XN(:,:), FN(:,:), fboundary(:,:), XORG(:,:)
+    real(c_double) :: eps, dt, a, b, c, radius, height, dvec(3)
+    real(c_double), allocatable :: XN(:,:), FN(:,:), fboundary(:,:), XORG(:,:), & 
+                                    topcircle(:,:)
     real(c_double), allocatable :: fzmag(:), fztop(:), fzbottom(:), fxboundary(:), fyboundary(:), & 
-                                    fzboundary(:), fpenalty(:,:)
+                                    fzboundary(:), fpenalty(:,:), fbending(:,:)
     real(c_double), allocatable :: X(:),Y(:),Z(:), nangle(:)
     real(c_double) :: angle45, kpenalty
  
@@ -34,7 +35,7 @@ program main
     ! Generate fe structures
     call generatefestructures(n)
     allocate(fzmag(n), X(n), Y(n), Z(n), nangle(n), XN(n,3), & 
-                FN(n,3), fboundary(n,3), XORG(n,3), fpenalty(n,3))
+                FN(n,3), fboundary(n,3), XORG(n,3), fpenalty(n,3), fbending(n,3))
 
     !------------------------- Boundary conditions -------------------------!
     ! Use get positions to get the cooridinates of the particles
@@ -55,6 +56,9 @@ program main
     isOnTop = abs(Z-height) < eps
     isOnBottom = abs(Z) < eps
 
+    topcircle(:,1) = pack(X,isOnTop)
+    topcircle(:,2) = pack(Y,isOnTop)
+    topcircle(:,3) = pack(X,isOnTop)
 
     !Apply boundary forces
     fzmag = 100.0d0
@@ -83,7 +87,11 @@ program main
         end where
 
         ! Apply the bending forces
+        fbending = 0.0d0
+        dvec = calculate_direction_vector(topcircle)
         ! where(isOnTop)
+        ! end where
+
         ! fbend = getparallelforces(x,y,z)
         ! end where
         ! Apply the twisting forces
@@ -116,4 +124,26 @@ program main
     t_elapsed = t_end - t_start
     print *, "Simulation loop time (seconds): ", t_elapsed
 
+contains
+    function calculate_direction_vector(patch) result(direction_vector)
+    implicit none
+    real(8), intent(in) :: patch(:,:)
+    real(8) :: point1(3), point2(3), direction_vector(3)
+    real(8) :: norm_factor
+   
+   
+    point1 = [patch(1,1), patch(1,2), patch(1,3)]
+    point2 = [patch(5,1), patch(5,2), patch(5,3)]
+
+    ! Calculate direction vector (point2 - point1)
+    direction_vector(1) = point2(1) - point1(1)  ! dx
+    direction_vector(2) = point2(2) - point1(2)  ! dy  
+    direction_vector(3) = point2(3) - point1(3)  ! dz
+    
+    ! Calculate magnitude for normalization
+    norm_factor = sqrt(direction_vector(1)**2 + direction_vector(2)**2 + direction_vector(3)**2)
+    
+    direction_vector = direction_vector / norm_factor
+    
+end function calculate_direction_vector
 end program main
