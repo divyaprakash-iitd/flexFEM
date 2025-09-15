@@ -9,7 +9,7 @@ program main
     integer(C_INT) :: n, niter, iter, i
     logical, allocatable :: isOnSurface(:), isBetweenAngleRange(:), & 
                                 isOnTop(:), isOnBottom(:), isTopPatch(:), isBottomPatch(:)
-    real(c_double) :: eps, dt, a, b, c, radius, height, dvec(3)
+    real(c_double) :: eps, dt, a, b, c, radius, height, dvec(3), fbendingmag
     real(c_double), allocatable :: XN(:,:), FN(:,:), fboundary(:,:), XORG(:,:), & 
                                     topcircle(:,:)
     real(c_double), allocatable :: fzmag(:), fztop(:), fzbottom(:), fxboundary(:), fyboundary(:), & 
@@ -56,12 +56,13 @@ program main
     isOnTop = abs(Z-height) < eps
     isOnBottom = abs(Z) < eps
 
+    allocate(topcircle(size(pack(X,isOnTop),1),3))
     topcircle(:,1) = pack(X,isOnTop)
     topcircle(:,2) = pack(Y,isOnTop)
     topcircle(:,3) = pack(X,isOnTop)
 
     !Apply boundary forces
-    fzmag = 100.0d0
+    fzmag = 0.0d0
     fztop = merge(1.0D0*fzmag,0.0d0,isOnTop)
     fzbottom = merge(-1.0D0*fzmag,0.0d0,isOnBottom)
     ! To-Do: Apply anchoring force on the bottom
@@ -69,7 +70,7 @@ program main
     fboundary(:,3) = fztop + fzbottom*0.0d0
     !-----------------------------------------------------------------------------!
 
-    niter = 25000
+    niter = 30000
     dt = 0.001
     call cpu_time(t_start)
     do iter = 1, niter
@@ -88,9 +89,13 @@ program main
 
         ! Apply the bending forces
         fbending = 0.0d0
+        fbendingmag = 100.0d0
         dvec = calculate_direction_vector(topcircle)
-        ! where(isOnTop)
-        ! end where
+        where(isOnTop)
+            fbending(:,1) = fbendingmag*dvec(1)
+            fbending(:,2) = fbendingmag*dvec(2)
+            fbending(:,3) = fbendingmag*dvec(3)
+        end where
 
         ! fbend = getparallelforces(x,y,z)
         ! end where
@@ -99,7 +104,7 @@ program main
         ! fbend = getorthogonalforces(x,y,z)
         ! end where
         ! To-Do: Implement a C++ API
-        call calculateforces(fboundary+fpenalty,n)
+        call calculateforces(fboundary+fpenalty+fbending,n)
         call getforces(FN,n)
         call updatepositions(dt)
         call getpositions(XN,n)
