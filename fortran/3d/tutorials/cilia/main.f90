@@ -6,14 +6,15 @@ program main
     implicit none
 
     real(8), parameter :: PI = 3.141592653589793
-    integer(C_INT) :: n, niter, iter
+    integer(C_INT) :: n, niter, iter, i
     logical, allocatable :: isOnSurface(:), isBetweenAngleRange(:), & 
                                 isOnTop(:), isOnBottom(:), isTopPatch(:), isBottomPatch(:)
     real(c_double) :: eps, dt, a, b, c, radius, height
-    real(c_double), allocatable :: XN(:,:), FN(:,:), fboundary(:,:)
-    real(c_double), allocatable :: fzmag(:), fztop(:), fzbottom(:), fxboundary(:), fyboundary(:), fzboundary(:)
+    real(c_double), allocatable :: XN(:,:), FN(:,:), fboundary(:,:), XORG(:,:)
+    real(c_double), allocatable :: fzmag(:), fztop(:), fzbottom(:), fxboundary(:), fyboundary(:), & 
+                                    fzboundary(:), fpenalty(:,:)
     real(c_double), allocatable :: X(:),Y(:),Z(:), nangle(:)
-    real(c_double) :: angle45
+    real(c_double) :: angle45, kpenalty
  
     ! Measure time
     real :: t_start, t_end, t_elapsed
@@ -27,15 +28,20 @@ program main
     radius = 0.1d0
     height = 2.0d0
 
+    ! Anchor properties
+    kpenalty = 10.0d0 ! Penalty force constant
+
     ! Generate fe structures
     call generatefestructures(n)
-    allocate(fzmag(n), X(n), Y(n), Z(n), nangle(n), XN(n,3), FN(n,3), fboundary(n,3))
+    allocate(fzmag(n), X(n), Y(n), Z(n), nangle(n), XN(n,3), & 
+                FN(n,3), fboundary(n,3), XORG(n,3), fpenalty(n,3))
 
     !------------------------- Boundary conditions -------------------------!
     ! Use get positions to get the cooridinates of the particles
     ! Then create masks based on a criteria that gets you the points 
     ! on a sector spanning -30 to 30 degrees and -150 to 150 degrees
     call getpositions(XN,n)
+    XORG = XN ! Store original positions for later use
     X = XN(:,1)
     Y = XN(:,2)
     Z = XN(:,3)
@@ -56,7 +62,7 @@ program main
     fzbottom = merge(-1.0D0*fzmag,0.0d0,isOnBottom)
     ! To-Do: Apply anchoring force on the bottom
     fboundary = 0.0d0
-    fboundary(:,3) = fztop + fzbottom
+    fboundary(:,3) = fztop + fzbottom*0.0d0
     !-----------------------------------------------------------------------------!
 
     niter = 25000
@@ -69,9 +75,13 @@ program main
         ! Calculate forces here which uses the difference between the original and the displaced
         ! position of the nodes along the x, y and z direction.
         ! PRIORITY: Refactor the code to use force vector instead of individual comments
-        ! where(isOnBottom) 
-        !   fxpenalty = - K*(xorg - x) 
-        ! end where
+        fpenalty = 0.0d0
+        where(isOnBottom) 
+          fpenalty(:,1) = - kpenalty*abs((xorg(:,1) - xn(:,1)))
+          fpenalty(:,2) = - kpenalty*abs((xorg(:,2) - xn(:,2))) 
+          fpenalty(:,3) = - kpenalty*abs((xorg(:,3) - xn(:,3)))
+        end where
+
         ! Apply the bending forces
         ! where(isOnTop)
         ! fbend = getparallelforces(x,y,z)
@@ -81,7 +91,7 @@ program main
         ! fbend = getorthogonalforces(x,y,z)
         ! end where
         ! To-Do: Implement a C++ API
-        call calculateforces(fboundary,n)
+        call calculateforces(fboundary+fpenalty,n)
         call getforces(FN,n)
         call updatepositions(dt)
         call getpositions(XN,n)
