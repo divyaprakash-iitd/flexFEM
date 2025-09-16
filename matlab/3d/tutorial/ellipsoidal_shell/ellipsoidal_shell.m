@@ -79,8 +79,8 @@ while iter <= niter
     if iter < niter/2
 
         % Apply stretching forces
-        FN(3,top_patch) = fmag;
-        FN(3,bottom_patch) = -fmag;
+        FN(3,top_patch) = fmag/10;
+        FN(3,bottom_patch) = -fmag/10;
 
         % Apply twisting forces
         % Get forces 

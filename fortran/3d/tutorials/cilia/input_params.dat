@@ -1,0 +1,7 @@
+!***********************************
+!*** Structure properties
+!***********************************
+&structureprops
+meshfile = 'cylinder_mesh.msh',
+Kp       = 1000000,
+Bp       = 500000/
