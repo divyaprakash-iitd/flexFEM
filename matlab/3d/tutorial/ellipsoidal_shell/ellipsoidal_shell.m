@@ -88,7 +88,7 @@ while iter <= niter
         FN(:,bottom_patch) = FN(:,bottom_patch) + f_theta';
         
         f_theta = azimuthal_force_direction(x(top_patch), y(top_patch), z(top_patch), fmag);
-        FN(:,top_patch) = FN(:,top_patch) -f_theta';
+        FN(:,top_patch) = FN(:,top_patch) - f_theta';
 
     end
     
