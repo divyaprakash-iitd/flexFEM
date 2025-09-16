@@ -9,7 +9,8 @@ program main
     integer(C_INT) :: n, niter, iter, i, ntop
     logical, allocatable :: isOnSurface(:), isBetweenAngleRange(:), & 
                                 isOnTop(:), isOnBottom(:), isTopPatch(:), isBottomPatch(:)
-    real(c_double) :: eps, dt, a, b, c, radius, height, dvec(3), fbendingmag
+    real(c_double) :: eps, dt, a, b, c, radius, height, dvec(3), fbendingmag, amplitude, frequency, &
+                                time_period, time
     real(c_double), allocatable :: XN(:,:), FN(:,:), fboundary(:,:), XORG(:,:), & 
                                     topcircle(:,:)
     real(c_double), allocatable :: fzmag(:), fztop(:), fzbottom(:), fxboundary(:), fyboundary(:), & 
@@ -70,9 +71,10 @@ program main
     fboundary(:,3) = fztop + fzbottom*0.0d0
     !-----------------------------------------------------------------------------!
    
-    fbendingmag = 50.0d0
-    niter = 20000
+    ! fbendingmag = 50.0d0
+    niter = 100000
     dt = 0.002
+    time = 0.0d0
     call cpu_time(t_start)
     do iter = 1, niter
         if (iter .gt. niter/2) then
@@ -88,12 +90,16 @@ program main
         where(isOnBottom) 
           fpenalty(:,1) = - kpenalty*(xn(:,1) - xorg(:,1))
           fpenalty(:,2) = - kpenalty*(xn(:,2) - xorg(:,2))  
-          fpenalty(:,3) = - kpenalty*(xn(:,3) - xorg(:,3))
+          fpenalty(:,3) = - 10*kpenalty*(xn(:,3) - xorg(:,3))
         end where
 
         ! Apply the bending forces
         fbending = 0.0d0
         ! fbendingmag = 100.0d0
+        amplitude = 150.0d0 !50.0d0        ! Maximum force magnitude
+        ! frequency = 1.0d0          ! Frequency in Hz (cycles per unit time)
+        time_period = dt * niter / 4.0d0
+        fbendingmag = amplitude * cos(2.0d0 * 3.14159265359d0 * (1.0d0/time_period) * time)
         dvec = calculate_direction_vector(topcircle)
         where(isOnTop)
             fbending(:,1) = fbendingmag*dvec(1) 
@@ -120,6 +126,7 @@ program main
                 , iter, " /", niter, " (", 100.0*iter/niter, "%)"
             if (iter == niter) write(*,*) ! Move to next line at the end
         end if
+        time = time + dt
     end do
 
     call cpu_time(t_end)
