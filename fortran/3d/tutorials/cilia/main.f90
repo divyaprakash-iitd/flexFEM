@@ -27,10 +27,10 @@ program main
     b = 1.0d0
     c = 1.0d0
     radius = 0.1d0
-    height = 2.0d0
+    height = 1.0d0
 
     ! Anchor properties
-    kpenalty = 10.0d0 ! Penalty force constant
+    kpenalty = 1000.0d0 ! Penalty force constant
 
     ! Generate fe structures
     call generatefestructures(n)
@@ -70,25 +70,25 @@ program main
     fboundary(:,3) = fztop + fzbottom*0.0d0
     !-----------------------------------------------------------------------------!
    
-    fbendingmag = 100.0d0
-    niter = 60000
-    dt = 0.001
+    fbendingmag = 50.0d0
+    niter = 20000
+    dt = 0.002
     call cpu_time(t_start)
     do iter = 1, niter
-        ! if (iter .gt. niter/2) then
-        if (iter .gt. 20000) then
+        if (iter .gt. niter/2) then
+        ! if (iter .gt. 20000) then
             fboundary = 0.0d0
-            fbendingmag = 0.0d0
-            dt = 0.005
+            ! fbendingmag = 0.0d0
+            ! dt = 0.005
         end if
         ! Calculate forces here which uses the difference between the original and the displaced
         ! position of the nodes along the x, y and z direction.
         ! PRIORITY: Refactor the code to use force vector instead of individual comments
         fpenalty = 0.0d0
         where(isOnBottom) 
-          fpenalty(:,1) = - kpenalty*abs((xorg(:,1) - xn(:,1)))
-          fpenalty(:,2) = - kpenalty*abs((xorg(:,2) - xn(:,2))) 
-          fpenalty(:,3) = - kpenalty*abs((xorg(:,3) - xn(:,3)))
+          fpenalty(:,1) = - kpenalty*(xn(:,1) - xorg(:,1))
+          fpenalty(:,2) = - kpenalty*(xn(:,2) - xorg(:,2))  
+          fpenalty(:,3) = - kpenalty*(xn(:,3) - xorg(:,3))
         end where
 
         ! Apply the bending forces

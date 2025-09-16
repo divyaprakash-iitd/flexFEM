@@ -2,7 +2,7 @@ SetFactory("OpenCASCADE");
 
 // Parameters
 r = 0.1;     // radius
-h = 2.0;     // height
+h = 1.0;     // height
 lc = 0.05;    // mesh size
 
 // Create the cylinder
