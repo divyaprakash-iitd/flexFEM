@@ -106,13 +106,13 @@ module fem3d_interface
         end do
     end subroutine getpositions
     
-    subroutine calculateforces(FXC,FYC,FZC,nn) bind(C)
+    subroutine calculateforces(F,nn) bind(C)
         ! Applies the boundary forces to the particle
         use iso_c_binding, only: c_int, c_double, c_loc
         implicit none
 
         integer(c_int), intent(in)   :: nn
-        real(c_double), intent(in), optional   :: FXC(nn),FYC(nn),FZC(nn)
+        real(c_double), intent(in), optional   :: F(nn,3)
 
         integer(int32) :: i, npoints
 
@@ -123,11 +123,11 @@ module fem3d_interface
 
         ! Apply boundary forces
         ! To-Do: Combine the boundary forces into a single force array
-        if (present(FXC) .and. present(FYC) .and. present(FZC)) then
+        if (present(F)) then
             do i = 1, nn
-                structures(1)%fden(i,1) = FXC(i)
-                structures(1)%fden(i,2) = FYC(i)
-                structures(1)%fden(i,3) = FZC(i)
+                structures(1)%fden(i,1) = F(i,1)
+                structures(1)%fden(i,2) = F(i,2)
+                structures(1)%fden(i,3) = F(i,3)
             end do
         end if
 
